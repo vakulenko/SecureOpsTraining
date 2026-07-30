@@ -30,7 +30,7 @@ class Settings:
 
         return cls(
             google_api_key=google_api_key,
-            google_model=os.getenv("GOOGLE_MODEL", "gemini-1.5-flash"),
+            google_model=os.getenv("GOOGLE_MODEL", "gemini-3.5-flash-lite"),
             langsmith_tracing=os.getenv("LANGSMITH_TRACING", "false").lower() == "true",
             langsmith_api_key=os.getenv("LANGSMITH_API_KEY"),
             langsmith_project=os.getenv(
