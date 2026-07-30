@@ -19,7 +19,7 @@ call venv\Scripts\activate.bat
 
 echo Installing dependencies...
 pip install -r requirements.txt --quiet
-pip install langgraph-cli --quiet
+pip install "langgraph-cli[inmem]" --quiet
 
 python debug.py
 
