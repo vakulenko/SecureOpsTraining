@@ -1,7 +1,7 @@
 {
-  "dependencies": ["."],
+  "dependencies": ["langchain", "langchain-core", "langchain-google-genai", "langgraph", "langsmith", "python-dotenv"],
   "graphs": {
-    "soc-assistant": "./src/graph.py:create_graph"
+    "soc_assistant": "src.graph:graph"
   },
   "env": ".env"
 }

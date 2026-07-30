@@ -1,47 +1,51 @@
-# Local Agent Server Setup (No Docker Required)
+# Local Agent Server Setup - LangGraph CLI (Proven Solution)
 
-Connect your local SecureOps AI agent to LangSmith Studio without Docker.
+Connect your local SecureOps AI agent to LangSmith Studio using the built-in LangGraph CLI.
 
-## What This Does
-
-This creates a simple HTTP server that:
-- Runs your agent locally on Windows
-- Connects to LangSmith Studio for visualization
-- Shows graph execution flow in real-time
-- No Docker required - pure Python
+This is the **production-tested solution** from the reference project.
 
 ## Quick Start
 
-### 1. Start the Local Server
+### 1. Start the Debug Server
 
 ```powershell
-.\server.bat
+python debug.py
 ```
 
 **Output should show:**
 ```
-========================================
- LOCAL AGENT SERVER STARTED
-========================================
+=======================================================================
+SecureOps AI - LangGraph Studio Debug Mode
+=======================================================================
 
-Server Information:
-  URL: http://localhost:8000
-  Status: http://localhost:8000/health
+[OK] .env configured
+[OK] LANGSMITH_API_KEY set
+[OK] langgraph.json found
+[OK] src/graph.py found
 
-How to connect to LangSmith Studio:
-  1. Open LangSmith Studio in your browser
-  2. Click "Configure Studio connection"
-  3. Enter Base URL: http://localhost:8000
-  4. Click "Connect"
+=======================================================================
+Starting LangGraph Development Server
+=======================================================================
+
+Server will start on: http://127.0.0.1:2024
+Studio will connect automatically
+
+Next steps:
+  1. Open https://smith.langchain.com
+  2. Click 'Configure Studio connection'
+  3. Enter Base URL: http://127.0.0.1:2024
+  4. Click 'Connect'
+  5. Your agent will appear in the graph view
+  6. Test your agent in the playground
 ```
 
-**Keep this window open.**
+Keep this window open.
 
-### 2. Connect to LangSmith Studio
+### 2. Configure LangSmith Studio
 
 1. Open [LangSmith Studio](https://smith.langchain.com/) in your browser
 2. Click the **"Configure Studio connection"** dialog (top right)
-3. Enter **Base URL**: `http://localhost:8000`
+3. Enter **Base URL**: `http://127.0.0.1:2024`
 4. Click **"Connect"**
 
 You should see:
@@ -49,338 +53,307 @@ You should see:
 ✅ Connection successful
 ```
 
-### 3. View Your Agent Execution
+### 3. View Your Agent
 
-Now you can:
-- See graph structure in Studio
-- Watch agent execution in real-time
-- View node execution flow
-- Monitor state changes
+In LangSmith Studio you can now:
+- See graph structure (all agent nodes)
+- Watch real-time execution flow
+- View node execution and state changes
+- Monitor tool calls and LLM interactions
+- Test agent directly in the playground
+
+---
+
+## What This Does
+
+The **LangGraph CLI** (included with `langgraph` package) provides:
+
+✅ **Native development server** - Built-in HTTP server on port 2024
+✅ **Hot-reload** - Changes to code automatically reload
+✅ **Graph visualization** - See structure in LangSmith Studio
+✅ **Playground testing** - Test agent directly in Studio
+✅ **Full tracing** - All execution visible in Studio
+✅ **No Docker required** - Pure Python on Windows 11
+✅ **Production-tested** - Used in reference projects
 
 ---
 
 ## How It Works
 
-### Server Architecture
-
 ```
-Windows 11 (Your Machine)
-├─ server.bat (startup script)
-├─ src/server.py (FastAPI HTTP server)
-│  ├─ Loads your LangGraph
-│  ├─ Exposes HTTP endpoints
-│  └─ Listens on localhost:8000
-└─ Traces sent to LangSmith (cloud)
-
-LangSmith Studio (Browser)
-├─ Connects to http://localhost:8000
-├─ Requests graph structure
-├─ Shows real-time execution
-└─ Displays traces
+┌─────────────────────────────────────────────────────┐
+│ Windows 11 Terminal                                 │
+│                                                     │
+│  PS> python debug.py                               │
+│                                                     │
+│  Starts:                                            │
+│  ├─ LangGraph CLI dev server                       │
+│  ├─ Listens on http://127.0.0.1:2024              │
+│  ├─ Loads graph from src/graph.py                 │
+│  └─ Exposes via langgraph.json config             │
+└─────────────────────────────────────────────────────┘
+         │
+         │ HTTP Connection (127.0.0.1:2024)
+         │
+┌────────▼──────────────────────────┐
+│ Browser: LangSmith Studio          │
+│                                    │
+│ Configure Studio connection:       │
+│ Base URL: 127.0.0.1:2024          │
+│                                    │
+│ Shows:                             │
+│ ├─ Graph structure                │
+│ ├─ Real-time execution            │
+│ ├─ Playground for testing         │
+│ └─ Full tracing data              │
+└────────────────────────────────────┘
 ```
 
-### API Endpoints
+---
 
-The server exposes:
+## Configuration Files
 
+### langgraph.json (Updated)
+```json
+{
+  "dependencies": ["langchain", "langchain-core", "langchain-google-genai", "langgraph", "langsmith", "python-dotenv"],
+  "graphs": {
+    "soc_assistant": "src.graph:graph"
+  },
+  "env": ".env"
+}
 ```
-GET  http://localhost:8000/
-     └─ API documentation
 
-GET  http://localhost:8000/health
-     └─ Health check status
+Key points:
+- `graphs.soc_assistant`: Points to `src.graph:graph` (the exported graph object)
+- `env`: Points to `.env` for configuration
+- `dependencies`: Lists required packages
 
-GET  http://localhost:8000/graph
-     └─ Graph structure (for visualization)
+### src/graph.py (Updated)
+At the end of the file, the graph is exported for CLI:
+```python
+# Export graph for LangGraph CLI
+graph = get_graph()
+```
 
-POST http://localhost:8000/invoke
-     └─ Execute your agent
-     └─ Input: {"user_message": "...", "conversation_history": [...]}
-     └─ Output: Agent response
+This makes the graph available as `src.graph:graph` in langgraph.json
+
+### .env (Must have LangSmith configured)
+```bash
+GOOGLE_API_KEY=your_key_here
+LANGSMITH_TRACING=true
+LANGSMITH_API_KEY=your_key_here
+LANGSMITH_ENDPOINT=https://eu.api.smith.langchain.com  # or your region
+LANGSMITH_PROJECT=SecureOps-SOC-Assistant
 ```
 
 ---
 
 ## Complete Workflow
 
-### Terminal 1: Start Local Server
-
+### Terminal 1: Start Debug Server
 ```powershell
-PS> .\server.bat
+PS> python debug.py
 ```
 
-Output:
-```
-Server Information:
-  URL: http://localhost:8000
-  Status: http://localhost:8000/health
+Server starts on `http://127.0.0.1:2024`
 
-How to connect to LangSmith Studio:
-  1. Open LangSmith Studio in your browser
-  2. Click "Configure Studio connection"
-  3. Enter Base URL: http://localhost:8000
-  4. Click "Connect"
-```
-
-### Terminal 2: Start Streamlit (Optional)
-
+### Terminal 2 (Optional): Start Streamlit
 ```powershell
 PS> .\debug.bat
 ```
 
-This opens:
-- Streamlit at http://localhost:8501 (chat interface)
-- LangSmith Studio at smith.langchain.com (traces)
+Opens Streamlit at `localhost:8501`
 
 ### Browser: Connect Studio
 
-1. Go to [LangSmith Studio](https://smith.langchain.com/)
+1. Go to https://smith.langchain.com/
 2. Click "Configure Studio connection"
-3. Enter: `http://localhost:8000`
+3. Enter: `http://127.0.0.1:2024`
 4. Click "Connect"
 
 ### Now You Have:
 
 | Window | Purpose |
 |--------|---------|
-| Terminal 1 | Local server (localhost:8000) |
-| Terminal 2 | Streamlit UI + debug logs |
-| Browser 1 | LangSmith Studio |
-| Browser 2 | Streamlit app |
-
----
-
-## Testing the Server
-
-### Test Health Check
-
-```powershell
-# In another PowerShell window:
-curl http://localhost:8000/health
-```
-
-**Expected response:**
-```json
-{
-  "status": "healthy",
-  "service": "SecureOps AI Agent Server",
-  "version": "1.0.0"
-}
-```
-
-### Test Invoke Endpoint
-
-```powershell
-$body = @{
-    user_message = "Check alert status"
-    conversation_history = @()
-} | ConvertTo-Json
-
-curl -Method POST `
-     -Uri http://localhost:8000/invoke `
-     -ContentType "application/json" `
-     -Body $body
-```
-
-**Expected response:**
-```json
-{
-  "status": "success",
-  "result": {
-    "final_response": "...",
-    "request_info": {...},
-    "completed_actions": [...]
-  }
-}
-```
-
-### View Graph Structure
-
-```powershell
-curl http://localhost:8000/graph
-```
+| Terminal 1 | Debug server on 127.0.0.1:2024 |
+| Terminal 2 | Streamlit chat + logs |
+| Browser | LangSmith Studio connected |
 
 ---
 
 ## What You'll See in Studio
 
-Once connected, LangSmith Studio shows:
+### Graph View
+- All agent nodes displayed (request_intake, supervisor, alert_analysis, etc.)
+- Connections between agents shown
+- Routing logic visualized
 
-### Graph Visualization
-- Nodes for each agent (request_intake, supervisor, etc.)
-- Connections between agents
-- Execution flow animation
-
-### Real-time Execution
+### Execution Flow
 - Nodes light up as they execute
 - State changes shown at each step
 - Tool calls displayed with parameters
-- LLM prompts and responses visible
+- LLM interactions visible
 
-### Performance Metrics
-- Execution time per node
-- Token usage
-- Error tracking
+### Playground
+- Test your agent directly in Studio
+- Send requests and see responses
+- Watch execution trace in real-time
 
 ---
 
-## Advantages of This Approach
+## Advantages of This Solution
 
-✅ **No Docker required** - Pure Python on Windows
-✅ **Lightweight** - ~50 MB memory usage
-✅ **Fast startup** - Starts in seconds
-✅ **Native Windows** - Uses standard Python HTTP server
-✅ **Full tracing** - All execution visible in Studio
-✅ **Graph visualization** - See flow in real-time
-✅ **Easy to debug** - Console output shows everything
+✅ **No Custom Code** - Uses LangGraph's built-in CLI
+✅ **Production-Tested** - Same approach as reference projects
+✅ **No Docker Required** - Pure Python, Windows 11 native
+✅ **Hot-Reload** - Edit code and changes apply instantly
+✅ **Full Integration** - Native LangSmith Studio support
+✅ **Professional Grade** - Enterprise-ready setup
+✅ **Easy to Use** - Just `python debug.py`
 
 ---
 
 ## Troubleshooting
 
-### Server won't start
+### "langgraph not found"
 
-**Error:** "Python is not installed"
-
-**Solution:**
+Install LangGraph CLI:
 ```powershell
-pip install fastapi uvicorn
-python src\server.py
+pip install langgraph-cli
 ```
+
+Or let `debug.py` install it (automatically done)
 
 ### Connection failed in Studio
 
-**Error:** "Connection failed. Ensure your server is running at this endpoint."
+**Error:** "Connection failed. Ensure your server is running"
 
 **Checklist:**
-1. ✓ Is `server.bat` still running?
-2. ✓ Does the PowerShell window show "Server running"?
-3. ✓ Test health: `curl http://localhost:8000/health`
-4. ✓ Check firewall not blocking port 8000
-5. ✓ Try different URL: `127.0.0.1:8000` instead of `localhost:8000`
+1. ✓ Is `python debug.py` still running?
+2. ✓ Does the PowerShell show "Server will start on"?
+3. ✓ Test health: `curl http://127.0.0.1:2024`
+4. ✓ Firewall not blocking port 2024?
+5. ✓ Try refreshing LangSmith Studio
 
-### Port 8000 already in use
+### Port 2024 already in use
 
-**Error:** "Address already in use"
+The LangGraph CLI will auto-select the next available port. Check the output in `python debug.py` for the actual port being used.
 
-**Solution - Use different port:**
-1. Edit `src/server.py` - change line:
-   ```python
-   uvicorn.run(..., port=8001, ...)
-   ```
-2. Or edit `server.bat` - add to last command:
-   ```batch
-   python src\server.py 8001
-   ```
-3. Connect Studio to: `http://localhost:8001`
+### .env configuration missing
 
-### LangSmith not tracing
+**Error:** "LANGSMITH_API_KEY not set in .env"
 
-**Check:**
-1. `.env` has `LANGSMITH_TRACING=true`
-2. `.env` has valid `LANGSMITH_API_KEY`
-3. Check Studio sidebar shows "✅ Tracing: Enabled"
-4. Send request and check Studio for traces
+Make sure .env has:
+```bash
+LANGSMITH_API_KEY=your_actual_key_here
+LANGSMITH_TRACING=true
+```
 
 ---
 
-## Architecture Diagram
+## Using with Streamlit
+
+For full development with chat interface AND graph visualization:
+
+**Terminal 1:**
+```powershell
+python debug.py
+```
+
+**Terminal 2:**
+```powershell
+.\debug.bat
+```
+
+**Browser 1:**
+```
+http://127.0.0.1:2024/
+```
+(Configure Studio connection)
+
+**Browser 2:**
+```
+http://localhost:8501
+```
+(Streamlit chat interface)
+
+Now you have:
+- Chat interface for testing
+- Graph visualization in Studio
+- Trace data and metrics
+- Debug logging in Terminal 2
+
+---
+
+## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│ Windows 11 Local Environment                            │
-│                                                         │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │ Terminal 1: server.bat                          │   │
-│  │  ├─ Starts: src/server.py                       │   │
-│  │  ├─ Port: 8000                                  │   │
-│  │  ├─ Graph: get_graph()                          │   │
-│  │  └─ API Endpoints: /health, /graph, /invoke     │   │
-│  └─────────────────────────────────────────────────┘   │
-│           │                                             │
-│           ├─── Localhost Connection ───┐               │
-│           │                            │               │
-│  ┌────────▼──────────────────────┐    │               │
-│  │ Browser: LangSmith Studio      │    │               │
-│  │ ├─ "Configure Studio          │    │               │
-│  │ │  connection"                 │    │               │
-│  │ ├─ Base URL: localhost:8000 ◄─┼────┘               │
-│  │ ├─ Shows graph structure       │                   │
-│  │ ├─ Shows execution flow        │                   │
-│  │ └─ Shows real-time traces      │                   │
-│  └────────────────────────────────┘                   │
-│                                                         │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │ Terminal 2 (Optional): debug.bat                │   │
-│  │  ├─ Streamlit UI (localhost:8501)               │   │
-│  │  ├─ LangSmith traces (smith.langchain.com)      │   │
-│  │  └─ Debug logging                               │   │
-│  └─────────────────────────────────────────────────┘   │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
-         │
-         ├─────────── Traces (HTTPS) ──────────────┐
-         │                                        │
-    ┌────▼──────────────────────────────────┐    │
-    │ LangSmith Cloud                        │    │
-    │ ├─ Receives traces from server.py      │◄───┘
-    │ ├─ Stores execution data               │
-    │ ├─ Provides Studio interface           │
-    │ └─ Shows metrics & analysis            │
-    └────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────┐
+│ Windows 11 Local Environment                         │
+│                                                      │
+│  Terminal 1: python debug.py                         │
+│  ├─ Loads: langgraph.json                           │
+│  ├─ Loads: src/graph.py (the graph)                 │
+│  ├─ Loads: .env (API keys)                          │
+│  └─ Server: http://127.0.0.1:2024 (LangGraph CLI)  │
+│                                                      │
+│  Terminal 2 (Optional): .\debug.bat                 │
+│  ├─ Streamlit: http://localhost:8501               │
+│  ├─ LangSmith traces: smith.langchain.com          │
+│  └─ Debug logs to console                           │
+│                                                      │
+└──────────────────────────────────────────────────────┘
+        │                          │
+        │                    HTTP Connection
+        │                          │
+        │      ┌────────────────────┘
+        │      │
+        │      ├─ Graph structure
+        │      ├─ Real-time execution
+        │      ├─ Playground testing
+        │      └─ Full tracing
+        │
+        └─ Traces to LangSmith (HTTPS)
+           ├─ Agent execution
+           ├─ LLM calls
+           ├─ Tool invocations
+           └─ Performance metrics
 ```
 
 ---
 
 ## Next Steps
 
-1. **Start server:** `.\server.bat`
-2. **Open Studio:** https://smith.langchain.com/
-3. **Connect:** Click "Configure Studio connection" → `http://localhost:8000`
-4. **View traces:** Send requests and watch execution
-5. **Optimize:** Use traces to improve prompts
-
----
-
-## Requirements
-
-- Python 3.9+ (you have it)
-- FastAPI (automatically installed)
-- Uvicorn (automatically installed)
-- Windows 11 (you have it)
-- **No Docker needed!**
+1. Run: `python debug.py`
+2. Open: https://smith.langchain.com/
+3. Click: "Configure Studio connection"
+4. Enter: `http://127.0.0.1:2024`
+5. Click: "Connect"
+6. See your graph structure appear!
 
 ---
 
 ## Summary
 
-This gives you:
-- ✅ Local agent execution on Windows
-- ✅ Real-time visualization in LangSmith Studio
-- ✅ No Docker required
-- ✅ Full graph flow visibility
-- ✅ Complete tracing integration
-- ✅ Professional development setup
+This is the **proven, production-ready solution** for connecting your local LangGraph agent to LangSmith Studio:
 
-Just run `server.bat` and connect Studio to `http://localhost:8000`!
+- ✅ Uses LangGraph CLI (no custom server code)
+- ✅ Works on Windows 11 without Docker
+- ✅ Professional enterprise setup
+- ✅ Full graph visualization and tracing
+- ✅ Simple to use: `python debug.py`
+
+Just run the script and connect Studio to `http://127.0.0.1:2024`!
 
 ---
 
-## Advanced: Custom Port
+## Reference
 
-If port 8000 is taken, modify `src/server.py`:
+This approach is based on the verified implementation in the `medassistai-langsmith` reference project, which successfully uses:
+- LangGraph CLI dev server
+- LangSmith Studio integration
+- Hot-reload during development
+- Full graph visualization
 
-```python
-if __name__ == "__main__":
-    main()
-    # Then change in main():
-    uvicorn.run(..., port=8001, ...)  # Change 8001 to any free port
-```
-
-Or run from command line:
-```powershell
-cd C:\path\to\project
-python -m uvicorn src.server:app --host 127.0.0.1 --port 8001
-```
-
-Then connect Studio to: `http://localhost:8001`
+Same proven solution, now adapted for SecureOps AI.
