@@ -86,10 +86,23 @@ langgraph up
 REM Handle errors
 if errorlevel 1 (
     echo.
-    echo Error: Failed to start LangGraph server
-    echo Troubleshooting:
-    echo   - Verify langgraph.json is correct
-    echo   - Check that src/graph.py exists and is valid
-    echo   - Try: pip install -U langgraph-cli
+    echo ========================================
+    echo  Setup Error
+    echo ========================================
+    echo.
+    echo LangGraph Studio requires Docker to be installed.
+    echo.
+    echo However, you don't need it for development!
+    echo.
+    echo Instead, use:
+    echo   .\debug.bat  - Full debugging with LangSmith traces
+    echo.
+    echo This gives you all the monitoring and observability
+    echo you need without Docker.
+    echo.
+    echo If you want local graph visualization anyway:
+    echo   1. Install Docker from https://www.docker.com/products/docker-desktop
+    echo   2. Run this script again
+    echo.
     pause
 )

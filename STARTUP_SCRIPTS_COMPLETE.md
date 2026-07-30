@@ -92,6 +92,8 @@ You now have **4 startup scripts** for different development workflows:
 
 **Purpose:** Start local LangGraph server for real-time graph visualization
 
+**⚠️ Requirements:** Docker must be installed
+
 **Usage:**
 ```powershell
 .\studio.bat
@@ -101,10 +103,16 @@ You now have **4 startup scripts** for different development workflows:
 - Checks Python and virtual environment
 - Installs LangGraph CLI tools
 - Verifies langgraph.json exists
+- Checks if Docker is installed
 - Starts local server on http://localhost:8023
 - Displays setup instructions
 
-**Console output:**
+**If Docker is not installed:**
+Script will show error and suggest:
+- Install Docker from https://www.docker.com/products/docker-desktop
+- Or use `debug.bat` instead (no Docker needed)
+
+**Console output (with Docker):**
 ```
 ========================================
  Local Studio Server Configuration
@@ -124,13 +132,19 @@ How to use with LangSmith Studio:
 **Keep this window open** while using other scripts.
 
 **When to use:**
+- Have Docker installed
 - Want to see graph structure visualization
 - Debugging routing logic
 - Understanding state transformations
 - Learning how graph works visually
 - Teaching/presenting graph architecture
 
-**What you'll see:**
+**When NOT to use:**
+- Don't have Docker (use `debug.bat` instead)
+- Just want to debug without extra setup
+- Quick testing or demos
+
+**What you'll see (with Docker):**
 - Graph nodes and connections
 - Real-time execution flow
 - State changes at each step

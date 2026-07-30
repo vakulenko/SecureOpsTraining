@@ -101,7 +101,23 @@ goto :eof
 
 :full_dev
 echo.
-echo Starting full development environment...
+echo NOTE: Full dev environment requires Docker for graph visualization.
+echo.
+echo Docker is optional - you get full debugging without it.
+echo.
+if exist "C:\Program Files\Docker\Docker\Docker.exe" (
+    echo Docker detected. Starting full environment...
+) else (
+    echo Docker not found. Starting debug mode instead.
+    echo.
+    echo To use graph visualization:
+    echo   1. Install Docker: https://www.docker.com/products/docker-desktop
+    echo   2. Run: .\dev-setup.bat
+    echo   3. Choose option 1 again
+    echo.
+    goto debug_mode
+)
+
 echo.
 echo This will open:
 echo   1. Terminal window (press Enter to continue)
