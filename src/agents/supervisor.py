@@ -1,5 +1,7 @@
 """Supervisor agent for routing requests to specialized agents."""
 
+import json
+import logging
 from langchain.agents import create_agent
 from langchain_core.messages import AIMessage, BaseMessage
 
@@ -14,6 +16,8 @@ from src.utils import (
     create_llm,
     get_settings,
 )
+
+logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = """You are the Supervisor in a Security Operations Center. Your job is to \
 understand what the analyst is asking about and route their request to the right specialist.
@@ -60,22 +64,34 @@ def build_supervisor_agent(model=None):
 def _parse_routing_decision(messages: list) -> list[str]:
     """Extract domain list from the supervisor's final message."""
     if not messages:
+        logger.warning("No messages in response")
         return []
 
     last_message = messages[-1]
     if not isinstance(last_message, AIMessage):
+        logger.warning(f"Last message is not AIMessage: {type(last_message)}")
         return []
 
-    text = str(getattr(last_message, "content", "")).strip()
+    # Handle both string content and content blocks (Gemini)
+    content = getattr(last_message, "content", "")
+    if isinstance(content, list):
+        text = " ".join([str(block) for block in content])
+    else:
+        text = str(content).strip()
 
-    import json
+    logger.debug(f"Parsing response text: {text[:200]}")
+
     try:
         parsed = json.loads(text)
         if isinstance(parsed, dict) and "domains" in parsed:
             domains = parsed.get("domains", [])
-            return [d for d in domains if d]  # Filter out empty strings
-    except (json.JSONDecodeError, ValueError):
-        pass
+            filtered = [d for d in domains if d]
+            logger.info(f"Parsed domains: {filtered}")
+            return filtered
+        else:
+            logger.warning(f"Response missing 'domains' key: {parsed}")
+    except (json.JSONDecodeError, ValueError) as e:
+        logger.warning(f"Failed to parse JSON: {e}. Text was: {text[:200]}")
 
     return []
 
@@ -103,9 +119,12 @@ def supervisor_agent_node(state: SOCWorkflowState) -> dict:
     requested_actions = state.get("requested_actions", [])
     completed_actions = list(state.get("completed_actions", []))
 
+    logger.info(f"Supervisor processing: '{user_message[:100]}'")
+
     # If this is the first pass, use LLM to determine routing
     if not requested_actions:
         try:
+            logger.info("First pass: calling LLM to determine routing")
             agent = build_supervisor_agent()
             response = agent.invoke(
                 {"messages": [{"role": "user", "content": user_message}]},
@@ -118,16 +137,11 @@ def supervisor_agent_node(state: SOCWorkflowState) -> dict:
 
             routing_domains = _parse_routing_decision(response.get("messages", []))
             requested_actions = _routing_to_actions(routing_domains)
-        except Exception:
+            logger.info(f"Determined actions: {requested_actions}")
+        except Exception as exc:
+            logger.error(f"Supervisor routing failed: {exc}", exc_info=True)
             # On error, default to response generation
             requested_actions = [ACTION_RESPONSE]
-
-    # Find next action to execute
-    next_action = ACTION_RESPONSE
-    for action in requested_actions:
-        if action not in completed_actions:
-            next_action = action
-            break
 
     return {
         "requested_actions": requested_actions,
