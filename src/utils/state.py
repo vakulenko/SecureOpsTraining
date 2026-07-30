@@ -38,6 +38,7 @@ class EndpointResult(TypedDict, total=False):
     device_status: dict
     malware_details: list[dict]
     actions_taken: list[str]
+    summary: str
     error: str | None
 
 
@@ -48,6 +49,7 @@ class IncidentResult(TypedDict, total=False):
     status: str
     timeline: list[dict]
     actions_taken: list[str]
+    summary: str
     error: str | None
 
 

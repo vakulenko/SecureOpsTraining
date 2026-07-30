@@ -70,10 +70,18 @@ def run_node(node_name: str, node_fn, user_message: str) -> dict:
     result = graph.invoke(state, config=config)
 
     while "__interrupt__" in result:
+        # HumanInTheLoopMiddleware's interrupt payload is
+        # {"action_requests": [...], "review_configs": [...]}; it expects the resume
+        # value to be {"decisions": [{"type": "approve"|"reject"}, ...]}, one decision
+        # per action_request, in order.
         payload = result["__interrupt__"][0].value
-        print(f"\n>>> APPROVAL REQUIRED: {payload}")
+        print("\n>>> APPROVAL REQUIRED:")
+        for action in payload["action_requests"]:
+            print(f"    {action['description']}")
         approved = input(">>> Approve? [y/N]: ").strip().lower() == "y"
-        result = graph.invoke(Command(resume=approved), config=config)
+        decision = {"type": "approve" if approved else "reject"}
+        decisions = [decision] * len(payload["action_requests"])
+        result = graph.invoke(Command(resume={"decisions": decisions}), config=config)
 
     return result
 
