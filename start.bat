@@ -1,11 +1,14 @@
 @echo off
-REM SecureOps AI - Windows Startup Script
+setlocal enabledelayedexpansion
 
 echo.
 echo ========================================
 echo  SecureOps AI - SOC Assistant Startup
 echo ========================================
 echo.
+
+REM Change to script directory
+cd /d "%~dp0"
 
 REM Check if Python is installed
 python --version >nul 2>&1
@@ -16,8 +19,8 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM Check if virtual environment exists
-if not exist "venv\" (
+REM Create virtual environment if it doesn't exist
+if not exist "venv" (
     echo Creating virtual environment...
     python -m venv venv
     if errorlevel 1 (
@@ -30,49 +33,35 @@ if not exist "venv\" (
 REM Activate virtual environment
 echo Activating virtual environment...
 call venv\Scripts\activate.bat
-if errorlevel 1 (
-    echo Error: Failed to activate virtual environment
-    pause
-    exit /b 1
-)
 
-REM Install/upgrade dependencies
+REM Install dependencies
 echo Installing dependencies...
 pip install -r requirements.txt --quiet
-if errorlevel 1 (
-    echo Error: Failed to install dependencies
-    pause
-    exit /b 1
-)
 
-REM Check if .env file exists
+REM Create .env from .env.example if needed
 if not exist ".env" (
     echo.
-    echo Warning: .env file not found
     if exist ".env.example" (
-        echo Creating .env file from .env.example...
+        echo Creating .env file from template...
         copy ".env.example" ".env" >nul
-        echo Please edit .env and add your API keys:
-        echo   - GOOGLE_API_KEY (required)
-        echo   - LANGSMITH_API_KEY (optional)
         echo.
-    ) else (
-        echo Error: .env.example not found
-        echo Please ensure you are running this script from the project root directory.
-        pause
-        exit /b 1
+        echo Note: Please edit .env and add your API keys:
+        echo   - GOOGLE_API_KEY (required for Gemini API)
+        echo   - LANGSMITH_API_KEY (optional, for tracing)
+        echo.
     )
 )
 
 REM Start the application
-echo.
 echo ========================================
-echo  Starting Streamlit application...
-echo  The app will open at http://localhost:8501
+echo Starting Streamlit application...
+echo App will open at http://localhost:8501
 echo ========================================
 echo.
 
 streamlit run src/app.py
 
-REM Deactivate virtual environment on exit
-deactivate
+REM Keep window open if there was an error
+if errorlevel 1 (
+    pause
+)
