@@ -1,61 +1,39 @@
-"""Shared LLM tool-calling loop for domain agents (endpoint, incident, etc.)."""
+"""Shared helpers for domain agents built on LangChain's create_agent + HITL middleware.
 
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
-from langgraph.types import interrupt
+Agents (endpoint, incident, identity, ...) get their tool-calling loop and their
+analyst-approval gate for free from langchain.agents.create_agent +
+HumanInTheLoopMiddleware. What's left to each agent is folding the resulting
+message list back into its slice of SOCWorkflowState -- these two helpers cover
+the two recurring, non-obvious parts of that: decoding a ToolMessage's JSON
+payload, and reading a model reply's text across both plain-string and Gemini
+content-block formats.
+"""
 
-from src.utils.config import get_settings
-from src.utils.llm import create_llm
+import json
 
-MAX_TOOL_ITERATIONS = 4
+from langchain_core.messages import ToolMessage
 
 
-def run_tool_agent(
-    system_prompt: str,
-    user_message: str,
-    tools: list,
-    approval_required: frozenset = frozenset(),
-    llm=None,
-) -> tuple[str, list[dict]]:
-    """Run an LLM tool-calling loop and return (final_text, tool_call_log).
+def tool_payload(message: ToolMessage):
+    """Decode a ToolMessage's content, which arrives as a JSON string."""
+    if isinstance(message.content, (dict, list)):
+        return message.content
 
-    Tools named in `approval_required` are gated behind LangGraph's
-    interrupt() so the graph pauses for analyst approval (Command(resume=
-    True/False)) before the tool actually executes. Requires the compiled
-    graph to be run with a checkpointer, or interrupt() will raise.
+    try:
+        return json.loads(message.content)
+    except (TypeError, ValueError):
+        return message.content
 
-    Each tool_call_log entry: {"tool", "args", "result", "approved"}.
-    "approved" is None for tools that don't require approval.
+
+def message_text(message) -> str:
+    """Get the plain text of a model reply.
+
+    Gemini returns content as a list of blocks rather than a string, so reading
+    `.content` directly would show raw dicts to the analyst. `.text` flattens both.
     """
-    llm = (llm or create_llm(get_settings())).bind_tools(tools)
-    tools_by_name = {t.name: t for t in tools}
+    text = getattr(message, "text", None)
 
-    messages = [SystemMessage(system_prompt), HumanMessage(user_message)]
-    tool_log: list[dict] = []
+    if text is not None:
+        return str(text).strip()
 
-    for _ in range(MAX_TOOL_ITERATIONS):
-        response: AIMessage = llm.invoke(messages)
-        messages.append(response)
-
-        if not response.tool_calls:
-            return response.content, tool_log
-
-        for call in response.tool_calls:
-            name, args = call["name"], call["args"]
-            approved = None
-
-            if name in approval_required:
-                approved = interrupt(
-                    {"action": name, "args": args, "reason": f"{name} requires analyst approval"}
-                )
-                if not approved:
-                    result = {"status": "denied", "message": f"{name} was not approved by analyst"}
-                    tool_log.append({"tool": name, "args": args, "result": result, "approved": False})
-                    messages.append(ToolMessage(content=str(result), tool_call_id=call["id"]))
-                    continue
-
-            tool_fn = tools_by_name.get(name)
-            result = tool_fn.invoke(args) if tool_fn else {"error": f"Unknown tool {name}"}
-            tool_log.append({"tool": name, "args": args, "result": result, "approved": approved})
-            messages.append(ToolMessage(content=str(result), tool_call_id=call["id"]))
-
-    return "Unable to complete the request after multiple tool calls.", tool_log
+    return str(getattr(message, "content", "")).strip()
