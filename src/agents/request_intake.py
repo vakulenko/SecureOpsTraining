@@ -107,11 +107,18 @@ def extract_request_info(
         content = extract_json_from_response(response.content)
         extracted = json.loads(content)
 
+        confidence = extracted.get("confidence", 1.0)
+        try:
+            confidence = float(confidence)
+        except (ValueError, TypeError):
+            confidence = 1.0
+        confidence = min(1.0, max(0.0, confidence))
+
         request_info: RequestInfo = {
             "request_type": extracted.get("request_type", ["unknown"]),
             "entities": extracted.get("entities", {}),
             "missing_fields": extracted.get("missing_fields", []),
-            "confidence": min(1.0, max(0.0, extracted.get("confidence", 1.0))),
+            "confidence": confidence,
         }
 
         if not isinstance(request_info["request_type"], list):
