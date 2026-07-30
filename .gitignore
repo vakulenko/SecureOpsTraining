@@ -55,5 +55,7 @@ htmlcov/
 *.log
 logs/
 
+# Runtime and State Files
 data/chroma
 .mcp.json
+.langgraph_api/
