@@ -67,3 +67,7 @@ def get_graph():
     if _graph_instance is None:
         _graph_instance = create_graph()
     return _graph_instance
+
+
+# Export graph for LangGraph CLI
+graph = get_graph()

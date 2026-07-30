@@ -14,7 +14,7 @@ if str(project_root) not in sys.path:
 import streamlit as st
 
 from src import get_graph, get_settings
-from src.utils import SOCWorkflowState
+from src.utils import SOCWorkflowState, setup_langsmith_tracing, get_langsmith_info
 
 
 def initialize_session_state():
@@ -23,6 +23,9 @@ def initialize_session_state():
         st.session_state.conversation_history = []
     if "graph" not in st.session_state:
         st.session_state.graph = get_graph()
+    if "langsmith_initialized" not in st.session_state:
+        setup_langsmith_tracing()
+        st.session_state.langsmith_initialized = True
 
 
 def run_workflow(user_message: str) -> str:
@@ -65,6 +68,20 @@ def main():
     )
 
     initialize_session_state()
+
+    # Display LangSmith status in sidebar
+    with st.sidebar:
+        st.markdown("### 📊 Monitoring & Tracing")
+        langsmith_info = get_langsmith_info()
+
+        if langsmith_info["tracing_enabled"]:
+            st.success("✅ LangSmith Tracing: **Enabled**")
+            st.markdown(
+                f"**Project:** `{langsmith_info['project']}`\n\n"
+                f"📈 [View Traces in LangSmith Studio](https://smith.langchain.com/projects/{langsmith_info['project']})"
+            )
+        else:
+            st.info("⏸️ LangSmith Tracing: **Disabled**\n\nEnable by setting `LANGSMITH_TRACING=true` in .env")
 
     # Display conversation history
     st.subheader("Conversation History")

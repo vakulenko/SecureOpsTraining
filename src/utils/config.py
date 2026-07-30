@@ -28,13 +28,9 @@ class Settings:
         if not google_api_key:
             raise ValueError("GOOGLE_API_KEY environment variable is required")
 
-        # GEMINI_MODEL is accepted because .env.example published that name; without the
-        # fallback a .env copied from the example silently used the hardcoded default.
-        model = os.getenv("GOOGLE_MODEL") or os.getenv("GEMINI_MODEL")
-
         return cls(
             google_api_key=google_api_key,
-            google_model=model or "gemini-3.5-flash-lite",
+            google_model=os.getenv("GOOGLE_MODEL", "gemini-3.5-flash-lite"),
             langsmith_tracing=os.getenv("LANGSMITH_TRACING", "false").lower() == "true",
             langsmith_api_key=os.getenv("LANGSMITH_API_KEY"),
             langsmith_project=os.getenv(
