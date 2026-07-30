@@ -1,10 +1,6 @@
 """Supervisor agent for routing requests to specialized agents."""
 
-import json
 import logging
-from langchain.agents import create_agent
-from langchain_core.messages import AIMessage, BaseMessage
-
 from src.utils import (
     ACTION_ALERT_ANALYSIS,
     ACTION_ENDPOINT,
@@ -13,100 +9,42 @@ from src.utils import (
     ACTION_REPORTING,
     ACTION_RESPONSE,
     SOCWorkflowState,
-    create_llm,
-    get_settings,
 )
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """You are the Supervisor in a Security Operations Center. Your job is to \
-understand what the analyst is asking about and route their request to the right specialist.
 
-DOMAIN ROUTING
-The available specialists are:
-1. Alert Analysis: handles alert searching, severity classification, threat summaries
-2. Identity & Access: handles login history, user activity, account status, password resets, unlocks
-3. Endpoint Security: handles device status, malware detection, device scans
-4. Incident Response: handles incident creation, status checks, escalation, summaries
-5. Reporting: handles generating reports, executive summaries, incident exports
+def _classify_request(user_message: str) -> list[str]:
+    """Classify the user request into domains using keyword matching.
 
-REQUEST ANALYSIS
-Carefully read the analyst's message and determine:
-- What is the primary domain (alerts, identity, endpoint, incident, reporting)?
-- Are multiple domains involved?
-- What is the actual request (search, check status, create, escalate, report)?
-
-YOUR RESPONSE
-Output a JSON object with one of these structures:
-
-Single agent: {"domains": ["alert_analysis"]}  OR  {"domains": ["identity"]}  etc.
-
-Multiple agents: {"domains": ["alert_analysis", "endpoint"]}
-
-If unclear/unsupported: {"domains": []}
-
-NEVER output agent names like "incident_agent". Only output domain names from the list above."""
-
-
-def build_supervisor_agent(model=None):
-    """Build the supervisor routing agent using LLM for intelligent decisions.
-
-    The model is injectable so tests can pass a fake one and run without an API key.
+    Returns a list of action names that should be executed.
     """
-    return create_agent(
-        model=model if model is not None else create_llm(get_settings()),
-        tools=[],  # Supervisor does not call tools; pure routing logic
-        system_prompt=SYSTEM_PROMPT,
-        name="supervisor_agent",
-    )
+    message_lower = user_message.lower()
+    actions = []
 
+    # Keywords for each domain
+    alert_keywords = ["alert", "severity", "threat", "attack", "threat summary", "analyze alert"]
+    identity_keywords = [
+        "login", "password", "account", "user activity", "unlock", "reset",
+        "failed login", "access", "authentication", "credentials"
+    ]
+    endpoint_keywords = ["device", "endpoint", "malware", "scan", "antivirus", "health", "infection"]
+    incident_keywords = ["incident", "escalate", "create incident", "incident status", "investigation"]
+    reporting_keywords = ["report", "summary", "export", "investigation report", "executive summary"]
 
-def _parse_routing_decision(messages: list) -> list[str]:
-    """Extract domain list from the supervisor's final message."""
-    if not messages:
-        logger.warning("No messages in response")
-        return []
+    # Match keywords and add actions
+    if any(kw in message_lower for kw in alert_keywords):
+        actions.append(ACTION_ALERT_ANALYSIS)
+    if any(kw in message_lower for kw in identity_keywords):
+        actions.append(ACTION_IDENTITY)
+    if any(kw in message_lower for kw in endpoint_keywords):
+        actions.append(ACTION_ENDPOINT)
+    if any(kw in message_lower for kw in incident_keywords):
+        actions.append(ACTION_INCIDENT)
+    if any(kw in message_lower for kw in reporting_keywords):
+        actions.append(ACTION_REPORTING)
 
-    last_message = messages[-1]
-    if not isinstance(last_message, AIMessage):
-        logger.warning(f"Last message is not AIMessage: {type(last_message)}")
-        return []
-
-    # Handle both string content and content blocks (Gemini)
-    content = getattr(last_message, "content", "")
-    if isinstance(content, list):
-        text = " ".join([str(block) for block in content])
-    else:
-        text = str(content).strip()
-
-    logger.debug(f"Parsing response text: {text[:200]}")
-
-    try:
-        parsed = json.loads(text)
-        if isinstance(parsed, dict) and "domains" in parsed:
-            domains = parsed.get("domains", [])
-            filtered = [d for d in domains if d]
-            logger.info(f"Parsed domains: {filtered}")
-            return filtered
-        else:
-            logger.warning(f"Response missing 'domains' key: {parsed}")
-    except (json.JSONDecodeError, ValueError) as e:
-        logger.warning(f"Failed to parse JSON: {e}. Text was: {text[:200]}")
-
-    return []
-
-
-def _routing_to_actions(routing_domains: list[str]) -> list[str]:
-    """Convert domain names to workflow action names."""
-    domain_to_action = {
-        "alert_analysis": ACTION_ALERT_ANALYSIS,
-        "identity": ACTION_IDENTITY,
-        "endpoint": ACTION_ENDPOINT,
-        "incident": ACTION_INCIDENT,
-        "reporting": ACTION_REPORTING,
-    }
-
-    actions = [domain_to_action[d] for d in routing_domains if d in domain_to_action]
+    # If no domains matched, default to response
     if not actions:
         actions = [ACTION_RESPONSE]
 
@@ -121,27 +59,10 @@ def supervisor_agent_node(state: SOCWorkflowState) -> dict:
 
     logger.info(f"Supervisor processing: '{user_message[:100]}'")
 
-    # If this is the first pass, use LLM to determine routing
+    # If this is the first pass, determine routing
     if not requested_actions:
-        try:
-            logger.info("First pass: calling LLM to determine routing")
-            agent = build_supervisor_agent()
-            response = agent.invoke(
-                {"messages": [{"role": "user", "content": user_message}]},
-                config={
-                    "run_name": "supervisor_agent",
-                    "tags": ["supervisor_agent"],
-                    "metadata": {"agent": "supervisor"},
-                },
-            )
-
-            routing_domains = _parse_routing_decision(response.get("messages", []))
-            requested_actions = _routing_to_actions(routing_domains)
-            logger.info(f"Determined actions: {requested_actions}")
-        except Exception as exc:
-            logger.error(f"Supervisor routing failed: {exc}", exc_info=True)
-            # On error, default to response generation
-            requested_actions = [ACTION_RESPONSE]
+        requested_actions = _classify_request(user_message)
+        logger.info(f"Determined actions: {requested_actions}")
 
     return {
         "requested_actions": requested_actions,
