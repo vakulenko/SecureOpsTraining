@@ -123,20 +123,35 @@ def create_graph():
             ACTION_RESPONSE: NODE_RESPONSE_GENERATOR,
         }
 
-        return action_to_node.get(next_action, NODE_RESPONSE_GENERATOR)
+        destination = action_to_node.get(next_action, NODE_RESPONSE_GENERATOR)
+        return destination
 
-    graph_builder.add_conditional_edges(NODE_SUPERVISOR, route_supervisor_decision)
+    # Add conditional edges with explicit path mapping
+    graph_builder.add_conditional_edges(
+        NODE_SUPERVISOR,
+        route_supervisor_decision,
+        {
+            NODE_ALERT_ANALYSIS: NODE_ALERT_ANALYSIS,
+            NODE_IDENTITY: NODE_IDENTITY,
+            NODE_ENDPOINT: NODE_ENDPOINT,
+            NODE_INCIDENT: NODE_INCIDENT,
+            NODE_REPORTING: NODE_REPORTING,
+            NODE_RESPONSE_GENERATOR: NODE_RESPONSE_GENERATOR,
+        }
+    )
 
     # Agent nodes -> back to supervisor to check if more agents needed
     def route_agent_to_supervisor(state: SOCWorkflowState) -> str:
         """After an agent runs, return to supervisor to route next."""
         return NODE_SUPERVISOR
 
-    graph_builder.add_conditional_edges(NODE_ALERT_ANALYSIS, route_agent_to_supervisor)
-    graph_builder.add_conditional_edges(NODE_IDENTITY, route_agent_to_supervisor)
-    graph_builder.add_conditional_edges(NODE_ENDPOINT, route_agent_to_supervisor)
-    graph_builder.add_conditional_edges(NODE_INCIDENT, route_agent_to_supervisor)
-    graph_builder.add_conditional_edges(NODE_REPORTING, route_agent_to_supervisor)
+    # All agents route back to supervisor with explicit path mapping
+    supervisor_path = {NODE_SUPERVISOR: NODE_SUPERVISOR}
+    graph_builder.add_conditional_edges(NODE_ALERT_ANALYSIS, route_agent_to_supervisor, supervisor_path)
+    graph_builder.add_conditional_edges(NODE_IDENTITY, route_agent_to_supervisor, supervisor_path)
+    graph_builder.add_conditional_edges(NODE_ENDPOINT, route_agent_to_supervisor, supervisor_path)
+    graph_builder.add_conditional_edges(NODE_INCIDENT, route_agent_to_supervisor, supervisor_path)
+    graph_builder.add_conditional_edges(NODE_REPORTING, route_agent_to_supervisor, supervisor_path)
 
     # Set entry and finish points
     graph_builder.set_entry_point(NODE_REQUEST_INTAKE)
