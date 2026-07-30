@@ -1,0 +1,26 @@
+[
+  {
+    "device_id": "DEV-001",
+    "hostname": "workstation-01",
+    "ip_address": "192.168.1.42",
+    "status": "healthy",
+    "last_checkin": "2025-07-30T10:25:00Z",
+    "malware_count": 0
+  },
+  {
+    "device_id": "DEV-002",
+    "hostname": "workstation-02",
+    "ip_address": "192.168.1.43",
+    "status": "at_risk",
+    "last_checkin": "2025-07-30T10:20:00Z",
+    "malware_count": 2
+  },
+  {
+    "device_id": "DEV-003",
+    "hostname": "server-01",
+    "ip_address": "192.168.1.100",
+    "status": "healthy",
+    "last_checkin": "2025-07-30T10:30:00Z",
+    "malware_count": 0
+  }
+]

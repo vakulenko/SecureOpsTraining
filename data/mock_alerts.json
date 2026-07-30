@@ -1,0 +1,27 @@
+[
+  {
+    "alert_id": "ALR-2025-001",
+    "severity": "HIGH",
+    "source": "Firewall",
+    "description": "Suspicious outbound connection to known C2 server",
+    "timestamp": "2025-07-30T10:30:00Z",
+    "device_ip": "192.168.1.42",
+    "target_ip": "203.0.113.45"
+  },
+  {
+    "alert_id": "ALR-2025-002",
+    "severity": "MEDIUM",
+    "source": "SIEM",
+    "description": "Multiple failed login attempts detected",
+    "timestamp": "2025-07-30T09:15:00Z",
+    "username": "jsmith@company.com"
+  },
+  {
+    "alert_id": "ALR-2025-003",
+    "severity": "LOW",
+    "source": "Antivirus",
+    "description": "Potentially unwanted program detected",
+    "timestamp": "2025-07-30T08:00:00Z",
+    "device_id": "DEV-001"
+  }
+]

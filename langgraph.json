@@ -1,0 +1,7 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "soc-assistant": "./src/graph.py:create_graph"
+  },
+  "env": ".env"
+}

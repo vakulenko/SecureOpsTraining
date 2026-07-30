@@ -1,0 +1,20 @@
+[
+  {
+    "username": "jsmith@company.com",
+    "full_name": "John Smith",
+    "status": "active",
+    "last_login": "2025-07-30T09:00:00Z"
+  },
+  {
+    "username": "jdoe@company.com",
+    "full_name": "Jane Doe",
+    "status": "active",
+    "last_login": "2025-07-30T08:30:00Z"
+  },
+  {
+    "username": "rjohnson@company.com",
+    "full_name": "Robert Johnson",
+    "status": "locked",
+    "last_login": "2025-07-29T17:00:00Z"
+  }
+]
