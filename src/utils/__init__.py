@@ -1,5 +1,6 @@
 """Utilities package for SecureOps AI."""
 
+from src.utils.agent_loop import run_tool_agent
 from src.utils.config import Settings, get_settings
 from src.utils.llm import create_llm
 from src.utils.tracing import setup_langsmith_tracing, get_langsmith_info
@@ -38,6 +39,7 @@ __all__ = [
     "create_llm",
     "setup_langsmith_tracing",
     "get_langsmith_info",
+    "run_tool_agent",
     "NODE_REQUEST_INTAKE",
     "NODE_SUPERVISOR",
     "NODE_ALERT_ANALYSIS",
