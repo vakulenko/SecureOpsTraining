@@ -1,0 +1,20 @@
+[
+  {
+    "incident_id": "INC-2025-001",
+    "title": "Suspicious Outbound Traffic",
+    "severity": "HIGH",
+    "status": "open",
+    "created": "2025-07-30T10:30:00Z",
+    "related_alerts": ["ALR-2025-001"],
+    "assigned_to": "security-team"
+  },
+  {
+    "incident_id": "INC-2025-002",
+    "title": "Failed Login Attempts",
+    "severity": "MEDIUM",
+    "status": "investigating",
+    "created": "2025-07-30T09:15:00Z",
+    "related_alerts": ["ALR-2025-002"],
+    "assigned_to": "identity-team"
+  }
+]
