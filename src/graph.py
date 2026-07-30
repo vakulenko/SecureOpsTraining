@@ -140,18 +140,12 @@ def create_graph():
         }
     )
 
-    # Agent nodes -> back to supervisor to check if more agents needed
-    def route_agent_to_supervisor(state: SOCWorkflowState) -> str:
-        """After an agent runs, return to supervisor to route next."""
-        return NODE_SUPERVISOR
-
-    # All agents route back to supervisor with explicit path mapping
-    supervisor_path = {NODE_SUPERVISOR: NODE_SUPERVISOR}
-    graph_builder.add_conditional_edges(NODE_ALERT_ANALYSIS, route_agent_to_supervisor, supervisor_path)
-    graph_builder.add_conditional_edges(NODE_IDENTITY, route_agent_to_supervisor, supervisor_path)
-    graph_builder.add_conditional_edges(NODE_ENDPOINT, route_agent_to_supervisor, supervisor_path)
-    graph_builder.add_conditional_edges(NODE_INCIDENT, route_agent_to_supervisor, supervisor_path)
-    graph_builder.add_conditional_edges(NODE_REPORTING, route_agent_to_supervisor, supervisor_path)
+    # All agent nodes route back to supervisor to check if more agents needed
+    graph_builder.add_edge(NODE_ALERT_ANALYSIS, NODE_SUPERVISOR)
+    graph_builder.add_edge(NODE_IDENTITY, NODE_SUPERVISOR)
+    graph_builder.add_edge(NODE_ENDPOINT, NODE_SUPERVISOR)
+    graph_builder.add_edge(NODE_INCIDENT, NODE_SUPERVISOR)
+    graph_builder.add_edge(NODE_REPORTING, NODE_SUPERVISOR)
 
     # Set entry and finish points
     graph_builder.set_entry_point(NODE_REQUEST_INTAKE)
