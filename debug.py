@@ -83,9 +83,9 @@ def main():
     print()
 
     try:
-        # Start LangGraph dev server
+        # Start LangGraph dev server using langgraph-cli
         subprocess.run(
-            [sys.executable, "-m", "langgraph", "dev"],
+            [sys.executable, "-m", "langgraph_cli", "dev"],
             check=False
         )
     except KeyboardInterrupt:
