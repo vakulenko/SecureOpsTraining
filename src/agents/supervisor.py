@@ -93,8 +93,16 @@ def _parse_routing_decision(messages: list) -> list[str]:
 
     # Extract content, handling both string and content blocks (Gemini)
     content = getattr(last_message, "content", "")
+
+    # Handle content blocks (Gemini returns list of dicts with 'type' and 'text')
     if isinstance(content, list):
-        text = " ".join([str(block) for block in content])
+        text_parts = []
+        for block in content:
+            if isinstance(block, dict) and "text" in block:
+                text_parts.append(block["text"])
+            else:
+                text_parts.append(str(block))
+        text = " ".join(text_parts)
     else:
         text = str(content).strip()
 
