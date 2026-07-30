@@ -7,3 +7,9 @@ langchain==1.3.14              # LangChain core
 langchain-google-genai==4.3.1  # Google Gemini integration
 langgraph==1.2.9               # Graph-based orchestration
 langsmith==0.10.11             # LangSmith monitoring
+
+# Persistence (opt-in via SOC_PERSISTENCE=sqlite; falls back to in-memory)
+langgraph-checkpoint-sqlite==3.1.0  # SqliteSaver: durable checkpoints for approval resume
+
+# Testing
+pytest==9.1.1                  # Test runner

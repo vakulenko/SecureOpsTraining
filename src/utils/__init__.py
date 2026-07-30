@@ -1,6 +1,14 @@
 """Utilities package for SecureOps AI."""
 
+from src.utils.checkpointer import create_checkpointer, get_db_path
 from src.utils.config import Settings, get_settings
+from src.utils.conversation_store import (
+    delete_thread,
+    init_db,
+    list_threads,
+    load_messages,
+    save_message,
+)
 from src.utils.llm import create_llm
 from src.utils.routing import (
     ACTION_ALERT_ANALYSIS,
@@ -35,6 +43,13 @@ __all__ = [
     "Settings",
     "get_settings",
     "create_llm",
+    "create_checkpointer",
+    "get_db_path",
+    "init_db",
+    "save_message",
+    "load_messages",
+    "list_threads",
+    "delete_thread",
     "NODE_REQUEST_INTAKE",
     "NODE_SUPERVISOR",
     "NODE_ALERT_ANALYSIS",

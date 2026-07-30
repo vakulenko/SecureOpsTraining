@@ -1,0 +1,172 @@
+[
+  {
+    "username": "jsmith@company.com",
+    "timestamp": "2025-07-30T09:00:00Z",
+    "source_ip": "192.168.1.42",
+    "service": "VPN",
+    "outcome": "success",
+    "failure_reason": null,
+    "geo": "Prague, CZ (office)",
+    "user_agent": "Cisco AnyConnect 4.10"
+  },
+  {
+    "username": "jsmith@company.com",
+    "timestamp": "2025-07-30T09:10:00Z",
+    "source_ip": "203.0.113.45",
+    "service": "VPN",
+    "outcome": "failure",
+    "failure_reason": "invalid_password",
+    "geo": "Unknown (TOR exit node)",
+    "user_agent": "curl/8.4.0"
+  },
+  {
+    "username": "jsmith@company.com",
+    "timestamp": "2025-07-30T09:11:00Z",
+    "source_ip": "203.0.113.45",
+    "service": "VPN",
+    "outcome": "failure",
+    "failure_reason": "invalid_password",
+    "geo": "Unknown (TOR exit node)",
+    "user_agent": "curl/8.4.0"
+  },
+  {
+    "username": "jsmith@company.com",
+    "timestamp": "2025-07-30T09:12:00Z",
+    "source_ip": "203.0.113.45",
+    "service": "VPN",
+    "outcome": "failure",
+    "failure_reason": "invalid_password",
+    "geo": "Unknown (TOR exit node)",
+    "user_agent": "curl/8.4.0"
+  },
+  {
+    "username": "jsmith@company.com",
+    "timestamp": "2025-07-30T09:13:00Z",
+    "source_ip": "203.0.113.45",
+    "service": "Email",
+    "outcome": "failure",
+    "failure_reason": "mfa_denied",
+    "geo": "Unknown (TOR exit node)",
+    "user_agent": "curl/8.4.0"
+  },
+  {
+    "username": "jsmith@company.com",
+    "timestamp": "2025-07-30T09:15:00Z",
+    "source_ip": "203.0.113.45",
+    "service": "Email",
+    "outcome": "failure",
+    "failure_reason": "mfa_denied",
+    "geo": "Unknown (TOR exit node)",
+    "user_agent": "curl/8.4.0"
+  },
+  {
+    "username": "jsmith@company.com",
+    "timestamp": "2025-07-30T09:18:00Z",
+    "source_ip": "203.0.113.45",
+    "service": "Email",
+    "outcome": "success",
+    "failure_reason": null,
+    "geo": "Unknown (TOR exit node)",
+    "user_agent": "curl/8.4.0"
+  },
+  {
+    "username": "rjohnson@company.com",
+    "timestamp": "2025-07-30T07:40:00Z",
+    "source_ip": "198.51.100.7",
+    "service": "VPN",
+    "outcome": "failure",
+    "failure_reason": "invalid_password",
+    "geo": "Unknown",
+    "user_agent": "OpenVPN 2.6"
+  },
+  {
+    "username": "rjohnson@company.com",
+    "timestamp": "2025-07-30T07:41:00Z",
+    "source_ip": "198.51.100.7",
+    "service": "VPN",
+    "outcome": "failure",
+    "failure_reason": "invalid_password",
+    "geo": "Unknown",
+    "user_agent": "OpenVPN 2.6"
+  },
+  {
+    "username": "rjohnson@company.com",
+    "timestamp": "2025-07-30T07:42:00Z",
+    "source_ip": "198.51.100.7",
+    "service": "VPN",
+    "outcome": "failure",
+    "failure_reason": "invalid_password",
+    "geo": "Unknown",
+    "user_agent": "OpenVPN 2.6"
+  },
+  {
+    "username": "rjohnson@company.com",
+    "timestamp": "2025-07-30T07:43:00Z",
+    "source_ip": "198.51.100.7",
+    "service": "VPN",
+    "outcome": "failure",
+    "failure_reason": "invalid_password",
+    "geo": "Unknown",
+    "user_agent": "OpenVPN 2.6"
+  },
+  {
+    "username": "rjohnson@company.com",
+    "timestamp": "2025-07-30T07:44:00Z",
+    "source_ip": "198.51.100.7",
+    "service": "VPN",
+    "outcome": "failure",
+    "failure_reason": "invalid_password",
+    "geo": "Unknown",
+    "user_agent": "OpenVPN 2.6"
+  },
+  {
+    "username": "rjohnson@company.com",
+    "timestamp": "2025-07-30T07:45:00Z",
+    "source_ip": "198.51.100.7",
+    "service": "VPN",
+    "outcome": "failure",
+    "failure_reason": "invalid_password",
+    "geo": "Unknown",
+    "user_agent": "OpenVPN 2.6"
+  },
+  {
+    "username": "rjohnson@company.com",
+    "timestamp": "2025-07-30T07:46:00Z",
+    "source_ip": "198.51.100.7",
+    "service": "VPN",
+    "outcome": "failure",
+    "failure_reason": "account_locked",
+    "geo": "Unknown",
+    "user_agent": "OpenVPN 2.6"
+  },
+  {
+    "username": "jdoe@company.com",
+    "timestamp": "2025-07-30T08:30:00Z",
+    "source_ip": "192.168.1.55",
+    "service": "VPN",
+    "outcome": "success",
+    "failure_reason": null,
+    "geo": "Prague, CZ (office)",
+    "user_agent": "Cisco AnyConnect 4.10"
+  },
+  {
+    "username": "jdoe@company.com",
+    "timestamp": "2025-07-30T08:35:00Z",
+    "source_ip": "192.168.1.55",
+    "service": "Email",
+    "outcome": "success",
+    "failure_reason": null,
+    "geo": "Prague, CZ (office)",
+    "user_agent": "Outlook 16.0"
+  },
+  {
+    "username": "jdoe@company.com",
+    "timestamp": "2025-07-30T10:05:00Z",
+    "source_ip": "192.168.1.55",
+    "service": "Fileshare",
+    "outcome": "success",
+    "failure_reason": null,
+    "geo": "Prague, CZ (office)",
+    "user_agent": "Windows SMB"
+  }
+]

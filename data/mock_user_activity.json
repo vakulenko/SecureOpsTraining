@@ -1,0 +1,74 @@
+[
+  {
+    "username": "jsmith@company.com",
+    "timestamp": "2025-07-30T09:00:00Z",
+    "activity": "Logged in",
+    "service": "VPN",
+    "risk": "low",
+    "details": "Office IP 192.168.1.42"
+  },
+  {
+    "username": "jsmith@company.com",
+    "timestamp": "2025-07-30T09:19:00Z",
+    "activity": "Mailbox forwarding rule created",
+    "service": "Email",
+    "risk": "high",
+    "details": "All inbound mail forwarded to external address"
+  },
+  {
+    "username": "jsmith@company.com",
+    "timestamp": "2025-07-30T09:25:00Z",
+    "activity": "Bulk file download (412 files)",
+    "service": "Fileshare",
+    "risk": "high",
+    "details": "Finance share accessed from 203.0.113.45"
+  },
+  {
+    "username": "jsmith@company.com",
+    "timestamp": "2025-07-30T09:40:00Z",
+    "activity": "Privilege escalation attempt",
+    "service": "IAM",
+    "risk": "high",
+    "details": "Requested membership of Domain Admins; denied"
+  },
+  {
+    "username": "rjohnson@company.com",
+    "timestamp": "2025-07-30T07:46:00Z",
+    "activity": "Account locked by policy",
+    "service": "IAM",
+    "risk": "medium",
+    "details": "7 consecutive failed VPN logins"
+  },
+  {
+    "username": "rjohnson@company.com",
+    "timestamp": "2025-07-30T08:05:00Z",
+    "activity": "Self-service unlock attempt failed",
+    "service": "IAM",
+    "risk": "low",
+    "details": "MFA not enrolled, self-service unavailable"
+  },
+  {
+    "username": "jdoe@company.com",
+    "timestamp": "2025-07-30T08:35:00Z",
+    "activity": "Logged in",
+    "service": "Email",
+    "risk": "low",
+    "details": "Office IP 192.168.1.55"
+  },
+  {
+    "username": "jdoe@company.com",
+    "timestamp": "2025-07-30T10:05:00Z",
+    "activity": "File accessed",
+    "service": "Fileshare",
+    "risk": "low",
+    "details": "Engineering share, 3 files"
+  },
+  {
+    "username": "jdoe@company.com",
+    "timestamp": "2025-07-30T10:30:00Z",
+    "activity": "Password changed",
+    "service": "IAM",
+    "risk": "low",
+    "details": "Routine 90-day rotation"
+  }
+]

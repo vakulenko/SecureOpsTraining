@@ -36,6 +36,7 @@ env/
 ENV/
 env.bak/
 venv.bak/
+.venv/
 
 # IDE
 .vscode/
@@ -57,3 +58,13 @@ logs/
 
 data/chroma
 .mcp.json
+
+# Local SQLite persistence (holds analyst conversation text - never commit)
+*.db
+*.db-shm
+*.db-wal
+
+# Runtime mock data written by approved actions (seed files in data/ stay pristine)
+data/runtime/
+docs/plans
+REQUIREMENTS.md
