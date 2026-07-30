@@ -19,38 +19,49 @@ from src.utils import (
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """You are the Supervisor in a Security Operations Center. Your job is to \
-understand what the analyst is asking and route their request to the right specialist agents.
+SYSTEM_PROMPT = """You are a request router in a Security Operations Center.
 
-AVAILABLE SPECIALISTS AND THEIR DOMAINS:
-1. alert_analysis: searches alerts, classifies severity, analyzes threats
-2. identity: checks login history, user activity, account status, password resets, unlocks
-3. endpoint: checks device status, detects malware, scans devices, checks antivirus
-4. incident: creates incidents, checks status, escalates, generates summaries
-5. reporting: generates reports, executive summaries, investigation reports, exports data
+Your ONLY job: Read the analyst's request and output JSON routing information.
 
-YOUR TASK:
-Read the analyst's request carefully and determine which specialist(s) should handle it.
-You may need to route to multiple specialists if the request involves multiple domains.
+VALID DOMAIN NAMES (use these exactly):
+- alert_analysis
+- identity
+- endpoint
+- incident
+- reporting
 
-RESPOND WITH VALID JSON ONLY:
+OUTPUT FORMAT (this is the ONLY thing you should output):
 {"domains": ["domain1", "domain2"]}
 
-Examples:
-- "Check alert ALT-123" -> {"domains": ["alert_analysis"]}
-- "Unlock user john.doe" -> {"domains": ["identity"]}
-- "Scan device DEV-001" -> {"domains": ["endpoint"]}
-- "Create an incident" -> {"domains": ["incident"]}
-- "Generate a report for INC-456" -> {"domains": ["reporting"]}
-- "Check if john.doe is locked out and scan his device" -> {"domains": ["identity", "endpoint"]}
-- "I don't understand what you want" -> {"domains": []}
+EXAMPLES:
+Request: "Check alert ALT-123"
+Output: {"domains": ["alert_analysis"]}
 
-CRITICAL RULES:
-1. ALWAYS return valid JSON, nothing else
-2. Use only domain names from the list above
-3. If the request is unclear or unsupported, return {"domains": []}
-4. Do NOT include explanations or additional text
-5. Do NOT use "agent" or "node" in the domain names - only the domain names"""
+Request: "Unlock user john.doe and scan his device"
+Output: {"domains": ["identity", "endpoint"]}
+
+Request: "Create an incident"
+Output: {"domains": ["incident"]}
+
+Request: "Generate a report"
+Output: {"domains": ["reporting"]}
+
+Request: "What's the weather?"
+Output: {"domains": []}
+
+ROUTING LOGIC:
+- alert_analysis: for alerts, severity, threat analysis, alert details
+- identity: for login history, user activity, account status, unlock, password reset, access
+- endpoint: for device status, malware, scans, antivirus, device health
+- incident: for creating incidents, incident status, escalation, investigation
+- reporting: for reports, summaries, exports, investigation reports
+
+CRITICAL:
+1. Output ONLY valid JSON in the format {"domains": [...]}
+2. Use ONLY the domain names listed above
+3. Do NOT add any text before or after the JSON
+4. Do NOT include explanations
+5. Empty list {"domains": []} if request is unclear or unsupported"""
 
 
 def build_supervisor_agent(model=None):
@@ -87,18 +98,42 @@ def _parse_routing_decision(messages: list) -> list[str]:
     else:
         text = str(content).strip()
 
-    logger.debug(f"Parsing response: {text[:300]}")
+    logger.debug(f"Raw response: {text[:500]}")
+
+    # Try multiple strategies to extract JSON
+    json_str = None
+
+    # Strategy 1: Look for markdown code blocks
+    if "```json" in text:
+        try:
+            json_str = text.split("```json")[1].split("```")[0].strip()
+        except IndexError:
+            pass
+
+    # Strategy 2: Look for plain code blocks
+    if json_str is None and "```" in text:
+        try:
+            json_str = text.split("```")[1].split("```")[0].strip()
+        except IndexError:
+            pass
+
+    # Strategy 3: Find the first '{' and last '}' to extract JSON object
+    if json_str is None:
+        try:
+            start = text.find("{")
+            end = text.rfind("}") + 1
+            if start >= 0 and end > start:
+                json_str = text[start:end]
+        except Exception:
+            pass
+
+    # Strategy 4: Use the entire text
+    if json_str is None:
+        json_str = text
+
+    logger.debug(f"Attempting to parse: {json_str[:300]}")
 
     try:
-        # Try to find JSON in the response
-        # Some LLMs may wrap it in markdown code blocks
-        if "```json" in text:
-            json_str = text.split("```json")[1].split("```")[0].strip()
-        elif "```" in text:
-            json_str = text.split("```")[1].split("```")[0].strip()
-        else:
-            json_str = text
-
         parsed = json.loads(json_str)
 
         if isinstance(parsed, dict) and "domains" in parsed:
@@ -108,14 +143,14 @@ def _parse_routing_decision(messages: list) -> list[str]:
                 d for d in domains
                 if d in ["alert_analysis", "identity", "endpoint", "incident", "reporting"]
             ]
-            logger.info(f"Parsed domains: {valid_domains}")
+            logger.info(f"Successfully parsed domains: {valid_domains}")
             return valid_domains
         else:
             logger.warning(f"Response missing 'domains' key: {parsed}")
             return []
     except (json.JSONDecodeError, ValueError, KeyError, IndexError) as e:
-        logger.warning(f"Failed to parse routing response: {e}")
-        logger.debug(f"Raw response was: {text[:300]}")
+        logger.error(f"Failed to parse routing response: {e}")
+        logger.error(f"Attempted to parse: {json_str[:500]}")
         return []
 
 
