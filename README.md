@@ -11,14 +11,13 @@ SecureOps AI is a 2-day MVP that provides:
 - Human-in-the-loop approvals for sensitive actions
 - LangSmith tracing for observability
 
-## Setup Instructions
+## Quick Start
 
 ### Prerequisites
 
 - Python 3.9+
-- pip
 - Google Gemini API key
-- (Optional) LangSmith API key for tracing
+- LangSmith API key (optional, for tracing)
 
 ### Installation
 
@@ -43,84 +42,41 @@ SecureOps AI is a 2-day MVP that provides:
    ```
    GOOGLE_API_KEY=your-gemini-api-key
    LANGSMITH_API_KEY=your-langsmith-api-key (optional)
+   LANGSMITH_TRACING=true (optional)
    ```
 
 ## Running the Application
 
-### Start the Streamlit app:
+### Start the Streamlit App
 
 ```bash
-streamlit run src/app.py
+.\start.bat
 ```
 
 The app will open at `http://localhost:8501`
 
-### Running Tests
+### Start LangSmith Studio Connection
+
+To connect to LangSmith Studio for graph visualization and monitoring:
+
+```bash
+.\debug.bat
+```
+
+This starts the LangGraph development server on `http://127.0.0.1:2024`.
+
+Then in LangSmith Studio:
+1. Click "Configure Studio connection"
+2. Enter Base URL: `http://127.0.0.1:2024`
+3. Click "Connect"
+
+You'll see your agent graph structure and can test it in the playground.
+
+## Running Tests
 
 ```bash
 pytest tests/
 ```
-
-## Environment Variables
-
-### Required
-
-- `GOOGLE_API_KEY` - Google Gemini API key
-
-### Optional
-
-- `GOOGLE_MODEL` - Gemini model name (default: `gemini-1.5-flash`)
-- `LANGSMITH_TRACING` - Enable LangSmith tracing (default: `false`)
-- `LANGSMITH_API_KEY` - LangSmith API key for trace upload
-- `LANGSMITH_PROJECT` - LangSmith project name (default: `SecureOps-SOC-Assistant`)
-- `DEBUG` - Enable debug logging (default: `false`)
-
-## Current Implementation Status
-
-### ✅ Completed
-
-- Project scaffolding
-- Configuration module with environment variable support
-- LLM factory for Google Gemini
-- Shared state definitions (TypedDict)
-- Routing constants and node names
-- Mock tools for all 5 domains:
-  - Alert analysis
-  - Identity & access
-  - Endpoint security
-  - Incident response
-  - Reporting
-- Agent stubs for all 7 agents
-- LangGraph workflow creation and compilation
-- Minimal Streamlit chat UI
-- Basic test suite
-- Mock data (alerts, users, devices, incidents)
-
-### 🚧 In Progress
-
-- Agent LLM implementations (prompt engineering)
-- Tool integration with agent nodes
-- Conditional routing in supervisor
-- Human-in-the-loop approval workflow
-- LangSmith tracing setup
-- Enhanced error handling
-
-### 📋 Planned
-
-- Full agent implementations
-- Response generator with output synthesis
-- Approval UI and workflow
-- LangSmith evaluation
-- Production deployment
-
-## Known Limitations
-
-1. All tools return mock data; no real API integrations
-2. Conversation history is session-only (not persisted to disk)
-3. Agent logic uses placeholder implementations
-4. Approval workflow not yet implemented
-5. No authentication or RBAC
-6. Limited error handling
 
 ## Project Structure
 
@@ -132,26 +88,54 @@ src/
 └── app.py           # Streamlit UI
 
 tests/               # Test suite
-
 data/                # Mock data JSON files
-
 docs/                # Documentation
 ```
 
-## Testing
+## Environment Variables
 
-Run unit tests:
-```bash
-pytest tests/test_imports.py
-pytest tests/test_state.py
-pytest tests/test_tools.py
-pytest tests/test_graph.py
-```
+### Required
+- `GOOGLE_API_KEY` - Google Gemini API key
 
-Verify graph compilation:
-```bash
-python -c "from src.graph import create_graph; g = create_graph(); print('Graph compiled successfully')"
-```
+### Optional
+- `GOOGLE_MODEL` - Gemini model name (default: `gemini-1.5-flash`)
+- `LANGSMITH_TRACING` - Enable LangSmith tracing (default: `false`)
+- `LANGSMITH_API_KEY` - LangSmith API key for trace upload
+- `LANGSMITH_PROJECT` - LangSmith project name (default: `SecureOps-SOC-Assistant`)
+- `LANGSMITH_ENDPOINT` - LangSmith endpoint (default: `https://api.smith.langchain.com`)
+- `DEBUG` - Enable debug logging (default: `false`)
+
+## Features
+
+### Implemented
+- Project scaffolding
+- Configuration module with environment variable support
+- LLM factory for Google Gemini
+- Shared state definitions (TypedDict)
+- Routing constants and node names
+- Mock tools for all 5 domains
+- Agent stubs for all 7 agents
+- LangGraph workflow creation and compilation
+- Streamlit chat UI
+- Basic test suite
+- Mock data (alerts, users, devices, incidents)
+- LangSmith tracing integration
+
+### In Progress
+- Agent LLM implementations
+- Tool integration with agent nodes
+- Conditional routing in supervisor
+- Human-in-the-loop approval workflow
+- Enhanced error handling
+
+## Known Limitations
+
+1. All tools return mock data; no real API integrations
+2. Conversation history is session-only (not persisted to disk)
+3. Agent logic uses placeholder implementations
+4. Approval workflow not yet implemented
+5. No authentication or RBAC
+6. Limited error handling
 
 ## Team Responsibilities
 
@@ -167,9 +151,8 @@ python -c "from src.graph import create_graph; g = create_graph(); print('Graph 
 1. Implement agent LLM logic with tool calling
 2. Integrate approval workflow with LangGraph interrupt()
 3. Connect Streamlit UI to approval pauses
-4. Set up LangSmith tracing in all agents
-5. Run manual testing on 7 core workflows
-6. Prepare for production deployment
+4. Run manual testing on 7 core workflows
+5. Prepare for production deployment
 
 ## References
 
