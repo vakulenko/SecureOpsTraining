@@ -55,6 +55,20 @@ def test_graph_import():
     assert create_graph is not None
 
 
+def test_identity_modules_import():
+    """Test the identity agent, its prompt, and the persistence helpers import."""
+    from src.agents.identity import build_identity_agent, identity_agent_node
+    from src.agents.identity_prompts import IDENTITY_SYSTEM_PROMPT
+    from src.utils.checkpointer import create_checkpointer
+    from src.utils.conversation_store import save_message
+
+    assert identity_agent_node is not None
+    assert build_identity_agent is not None
+    assert IDENTITY_SYSTEM_PROMPT
+    assert create_checkpointer is not None
+    assert save_message is not None
+
+
 def test_app_import():
     """Test Streamlit app imports."""
     # Import without running Streamlit

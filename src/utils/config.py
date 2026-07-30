@@ -10,7 +10,7 @@ class Settings:
 
     # LLM Configuration
     google_api_key: str
-    google_model: str = "gemini-1.5-flash"
+    google_model: str = "gemini-3.5-flash-lite"
 
     # LangSmith Configuration
     langsmith_tracing: bool = False

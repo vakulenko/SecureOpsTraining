@@ -23,10 +23,12 @@ class AlertAnalysisResult(TypedDict, total=False):
 class IdentityResult(TypedDict, total=False):
     """Result from identity & access agent."""
 
+    username: str
     login_history: list[dict]
     user_activity: list[dict]
     account_status: str
     actions_taken: list[str]
+    summary: str
     error: str | None
 
 

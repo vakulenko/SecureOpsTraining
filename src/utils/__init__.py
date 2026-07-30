@@ -1,7 +1,15 @@
 """Utilities package for SecureOps AI."""
 
+from src.utils.checkpointer import create_checkpointer, get_db_path
 from src.utils.agent_loop import run_tool_agent
 from src.utils.config import Settings, get_settings
+from src.utils.conversation_store import (
+    delete_thread,
+    init_db,
+    list_threads,
+    load_messages,
+    save_message,
+)
 from src.utils.llm import create_llm
 from src.utils.tracing import setup_langsmith_tracing, get_langsmith_info
 from src.utils.routing import (
@@ -40,6 +48,13 @@ __all__ = [
     "setup_langsmith_tracing",
     "get_langsmith_info",
     "run_tool_agent",
+    "create_checkpointer",
+    "get_db_path",
+    "init_db",
+    "save_message",
+    "load_messages",
+    "list_threads",
+    "delete_thread",
     "NODE_REQUEST_INTAKE",
     "NODE_SUPERVISOR",
     "NODE_ALERT_ANALYSIS",

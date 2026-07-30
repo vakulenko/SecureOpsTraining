@@ -3,18 +3,48 @@
     "username": "jsmith@company.com",
     "full_name": "John Smith",
     "status": "active",
-    "last_login": "2025-07-30T09:00:00Z"
+    "last_login": "2025-07-30T09:00:00Z",
+    "user_id": "USR-001",
+    "department": "Finance",
+    "mfa_enabled": true,
+    "failed_login_count": 5,
+    "locked_reason": null,
+    "manager": "Robert Johnson"
   },
   {
     "username": "jdoe@company.com",
     "full_name": "Jane Doe",
     "status": "active",
-    "last_login": "2025-07-30T08:30:00Z"
+    "last_login": "2025-07-30T08:30:00Z",
+    "user_id": "USR-002",
+    "department": "Engineering",
+    "mfa_enabled": true,
+    "failed_login_count": 0,
+    "locked_reason": null,
+    "manager": "Robert Johnson"
   },
   {
     "username": "rjohnson@company.com",
     "full_name": "Robert Johnson",
     "status": "locked",
-    "last_login": "2025-07-29T17:00:00Z"
+    "last_login": "2025-07-29T17:00:00Z",
+    "user_id": "USR-003",
+    "department": "Operations",
+    "mfa_enabled": false,
+    "failed_login_count": 7,
+    "locked_reason": "Exceeded failed login threshold",
+    "manager": "Maria Chen"
+  },
+  {
+    "username": "tarcher@company.com",
+    "full_name": "Tom Archer",
+    "status": "disabled",
+    "last_login": "2025-06-15T11:20:00Z",
+    "user_id": "USR-004",
+    "department": "Sales",
+    "mfa_enabled": false,
+    "failed_login_count": 0,
+    "locked_reason": "Account disabled on employee offboarding",
+    "manager": "Maria Chen"
   }
 ]
