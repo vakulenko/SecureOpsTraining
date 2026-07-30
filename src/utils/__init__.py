@@ -2,6 +2,7 @@
 
 from src.utils.config import Settings, get_settings
 from src.utils.llm import create_llm
+from src.utils.tracing import setup_langsmith_tracing, get_langsmith_info
 from src.utils.routing import (
     ACTION_ALERT_ANALYSIS,
     ACTION_CLARIFICATION,
@@ -35,6 +36,8 @@ __all__ = [
     "Settings",
     "get_settings",
     "create_llm",
+    "setup_langsmith_tracing",
+    "get_langsmith_info",
     "NODE_REQUEST_INTAKE",
     "NODE_SUPERVISOR",
     "NODE_ALERT_ANALYSIS",
