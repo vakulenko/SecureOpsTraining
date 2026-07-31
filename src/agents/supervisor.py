@@ -238,10 +238,19 @@ def _routing_request(state: SOCWorkflowState) -> str:
 def supervisor_agent_node(state: SOCWorkflowState) -> dict:
     """Route user request to appropriate agents based on request type."""
     user_message = state.get("user_message", "")
+    request_info = state.get("request_info", {})
     requested_actions = state.get("requested_actions", [])
     completed_actions = list(state.get("completed_actions", []))
 
     logger.info(f"Supervisor processing: '{user_message[:100]}'")
+
+    # Check if request_intake flagged a scope error
+    if request_info.get("scope_error"):
+        logger.warning(f"Scope error detected: {request_info['scope_error']}")
+        return {
+            "requested_actions": [ACTION_RESPONSE],
+            "completed_actions": completed_actions,
+        }
 
     # If this is the first pass, use LLM to determine routing
     if not requested_actions:

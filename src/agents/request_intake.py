@@ -46,6 +46,24 @@ def extract_json_from_response(response_content) -> str:
     return content
 
 
+SCOPE_VALIDATION_PROMPT = """You are a security operations center (SOC) assistant. Your task is to determine if a user request is related to information security.
+
+This assistant is specifically designed to help security analysts with:
+- Security alerts and threats
+- User access and identity management
+- Endpoint and device security
+- Security incidents and investigations
+- Security reporting and compliance
+
+If the request is NOT related to information security (e.g., weather, sports, general questions), respond with:
+{{"is_security_related": false, "reason": "Brief explanation of why this is out of scope"}}
+
+If the request IS related to security, respond with:
+{{"is_security_related": true}}
+
+Request: {user_message}
+"""
+
 EXTRACTION_PROMPT = """You are a security operations center (SOC) assistant. Your task is to analyze an analyst's natural language request and extract structured information.
 
 You will receive a user message from a security analyst and should:
@@ -84,6 +102,46 @@ Return this exact structure:
 
 Current request: {user_message}
 """
+
+def validate_scope(user_message: str) -> tuple[bool, str | None]:
+    """Check if the request is security-related.
+
+    Args:
+        user_message: The analyst's natural language request
+
+    Returns:
+        Tuple of (is_security_related, reason_if_not_related)
+        If security-related: (True, None)
+        If not security-related: (False, reason_message)
+
+    Raises:
+        ValueError: If GOOGLE_API_KEY is not configured in settings
+    """
+    if not user_message or not user_message.strip():
+        return True, None
+
+    settings = get_settings()
+
+    try:
+        llm = create_llm(settings)
+        prompt = SCOPE_VALIDATION_PROMPT.format(user_message=user_message)
+        response = llm.invoke(prompt)
+
+        content = extract_json_from_response(response.content)
+        result = json.loads(content)
+
+        is_security_related = result.get("is_security_related", True)
+        reason = result.get("reason")
+
+        return is_security_related, reason
+
+    except (json.JSONDecodeError, ValueError) as e:
+        logger.warning(f"Scope validation parsing error: {e}, assuming security-related")
+        return True, None
+    except Exception as e:
+        logger.warning(f"Scope validation error: {e}, assuming security-related")
+        return True, None
+
 
 def extract_request_info(
     user_message: str,
@@ -169,7 +227,8 @@ def extract_request_info(
 def request_intake_agent_node(state: SOCWorkflowState) -> dict:
     """Parse user message and extract request information.
 
-    Calls extract_request_info() and updates conversation history with extraction metadata.
+    First validates that the request is security-related. If not, returns error.
+    Otherwise calls extract_request_info() and updates conversation history.
     Updates completed_actions to track this agent's execution.
 
     Args:
@@ -182,16 +241,33 @@ def request_intake_agent_node(state: SOCWorkflowState) -> dict:
     conversation_history = state.get("conversation_history") or []
     completed_actions = state.get("completed_actions") or []
 
-    request_info = extract_request_info(user_message, conversation_history)
+    is_security_related, scope_reason = validate_scope(user_message)
 
-    new_history = conversation_history + [
-        {
-            "role": "system",
-            "content": f"Extracted request types: {request_info['request_type']}, "
-                      f"entities: {request_info['entities']}, "
-                      f"confidence: {request_info['confidence']}"
+    if not is_security_related:
+        request_info: RequestInfo = {
+            "request_type": ["unknown"],
+            "entities": {},
+            "missing_fields": [],
+            "confidence": 0.0,
+            "scope_error": scope_reason or "Request is outside the scope of information security operations."
         }
-    ]
+        new_history = conversation_history + [
+            {
+                "role": "system",
+                "content": f"Scope validation failed: {scope_reason}"
+            }
+        ]
+    else:
+        request_info = extract_request_info(user_message, conversation_history)
+        new_history = conversation_history + [
+            {
+                "role": "system",
+                "content": f"Extracted request types: {request_info['request_type']}, "
+                          f"entities: {request_info['entities']}, "
+                          f"confidence: {request_info['confidence']}"
+            }
+        ]
+
     new_completed_actions = completed_actions + ["request_intake"]
 
     return {
