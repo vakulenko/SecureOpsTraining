@@ -15,6 +15,10 @@ def search_security_alert(query: str) -> list[dict]:
         or query_lower in a.get("source", "").lower()
         or query_lower in a.get("device_ip", "").lower()
         or query_lower in a.get("target_ip", "").lower()
+        or query_lower in a.get("severity", "").lower()
+        or query_lower in a.get("username", "").lower()
+        or query_lower in a.get("device_id", "").lower()
+        or query_lower in a.get("source_ip", "").lower()
     ]
 
     return results

@@ -1,27 +1,243 @@
 [
   {
-    "alert_id": "ALR-2025-001",
+    "alert_id": "ALERT-001",
     "severity": "HIGH",
-    "source": "Firewall",
-    "description": "Suspicious outbound connection to known C2 server",
+    "source": "IDS",
+    "description": "Malware detected on endpoint - suspicious executable detected",
     "timestamp": "2025-07-30T10:30:00Z",
     "device_ip": "192.168.1.42",
     "target_ip": "203.0.113.45"
   },
   {
-    "alert_id": "ALR-2025-002",
-    "severity": "MEDIUM",
-    "source": "SIEM",
-    "description": "Multiple failed login attempts detected",
-    "timestamp": "2025-07-30T09:15:00Z",
-    "username": "jsmith@company.com"
+    "alert_id": "ALERT-002",
+    "severity": "HIGH",
+    "source": "Firewall",
+    "description": "Suspicious outbound connection to known C2 server detected",
+    "timestamp": "2025-07-30T10:15:00Z",
+    "device_ip": "192.168.1.100",
+    "target_ip": "203.0.113.45"
   },
   {
-    "alert_id": "ALR-2025-003",
+    "alert_id": "ALERT-003",
+    "severity": "MEDIUM",
+    "source": "SIEM",
+    "description": "Multiple failed login attempts detected from suspicious IP",
+    "timestamp": "2025-07-30T09:15:00Z",
+    "username": "jsmith@company.com",
+    "source_ip": "198.51.100.50"
+  },
+  {
+    "alert_id": "ALERT-004",
+    "severity": "CRITICAL",
+    "source": "EDR",
+    "description": "Ransomware activity detected - file encryption process found",
+    "timestamp": "2025-07-30T08:45:00Z",
+    "device_id": "DEV-042",
+    "device_ip": "192.168.1.55"
+  },
+  {
+    "alert_id": "ALERT-005",
     "severity": "LOW",
     "source": "Antivirus",
-    "description": "Potentially unwanted program detected",
+    "description": "Potentially unwanted program detected - adware signature match",
     "timestamp": "2025-07-30T08:00:00Z",
     "device_id": "DEV-001"
+  },
+  {
+    "alert_id": "ALERT-006",
+    "severity": "HIGH",
+    "source": "Network IDS",
+    "description": "Potential SQL injection attack detected in HTTP traffic",
+    "timestamp": "2025-07-30T11:45:00Z",
+    "device_ip": "192.168.1.78",
+    "target_ip": "10.0.2.15",
+    "port": 3306
+  },
+  {
+    "alert_id": "ALERT-007",
+    "severity": "CRITICAL",
+    "source": "EDR",
+    "description": "Privilege escalation attempt detected - suspicious process execution",
+    "timestamp": "2025-07-30T11:30:00Z",
+    "device_id": "DEV-089",
+    "device_ip": "192.168.1.120",
+    "username": "mrodriguez@company.com"
+  },
+  {
+    "alert_id": "ALERT-008",
+    "severity": "MEDIUM",
+    "source": "Firewall",
+    "description": "Unusual data exfiltration detected - large outbound transfer",
+    "timestamp": "2025-07-30T11:15:00Z",
+    "device_ip": "192.168.1.33",
+    "target_ip": "203.0.113.200",
+    "bytes_transferred": 2147483648
+  },
+  {
+    "alert_id": "ALERT-009",
+    "severity": "MEDIUM",
+    "source": "SIEM",
+    "description": "Brute force attack detected - rapid login failures on account",
+    "timestamp": "2025-07-30T10:50:00Z",
+    "username": "achen@company.com",
+    "source_ip": "198.51.100.75",
+    "failed_attempts": 47
+  },
+  {
+    "alert_id": "ALERT-010",
+    "severity": "HIGH",
+    "source": "EDR",
+    "description": "Suspicious lateral movement detected - unauthorized access to network share",
+    "timestamp": "2025-07-30T10:35:00Z",
+    "device_id": "DEV-045",
+    "device_ip": "192.168.1.67",
+    "source_user": "jsmith@company.com",
+    "target_resource": "\\\\fileserver\\Finance"
+  },
+  {
+    "alert_id": "ALERT-011",
+    "severity": "LOW",
+    "source": "Antivirus",
+    "description": "Suspicious script detected and quarantined",
+    "timestamp": "2025-07-30T10:20:00Z",
+    "device_id": "DEV-156",
+    "file_path": "C:\\Users\\Public\\Downloads\\setup.ps1"
+  },
+  {
+    "alert_id": "ALERT-012",
+    "severity": "CRITICAL",
+    "source": "IDS",
+    "description": "Zero-day exploit attempt detected - vulnerability CVE-2025-1234",
+    "timestamp": "2025-07-30T10:05:00Z",
+    "device_ip": "192.168.1.99",
+    "target_ip": "203.0.113.88",
+    "vulnerability_id": "CVE-2025-1234"
+  },
+  {
+    "alert_id": "ALERT-013",
+    "severity": "HIGH",
+    "source": "EDR",
+    "description": "Command and control (C2) communication detected - outbound beaconing",
+    "timestamp": "2025-07-30T09:55:00Z",
+    "device_id": "DEV-012",
+    "device_ip": "192.168.1.44",
+    "target_ip": "198.51.100.200",
+    "c2_signature": "emotet_beacon"
+  },
+  {
+    "alert_id": "ALERT-014",
+    "severity": "MEDIUM",
+    "source": "SIEM",
+    "description": "Suspicious credential access detected - LSASS dump attempt",
+    "timestamp": "2025-07-30T09:40:00Z",
+    "device_id": "DEV-178",
+    "username": "kwright@company.com",
+    "tool_name": "mimikatz"
+  },
+  {
+    "alert_id": "ALERT-015",
+    "severity": "HIGH",
+    "source": "Firewall",
+    "description": "DDoS attack in progress - flood of packets from multiple sources",
+    "timestamp": "2025-07-30T09:25:00Z",
+    "target_ip": "203.0.113.10",
+    "packet_count": 5000000,
+    "sources_count": 10000
+  },
+  {
+    "alert_id": "ALERT-016",
+    "severity": "MEDIUM",
+    "source": "SIEM",
+    "description": "Policy violation detected - unauthorized software installation",
+    "timestamp": "2025-07-30T09:10:00Z",
+    "device_id": "DEV-234",
+    "username": "dlee@company.com",
+    "software": "Unauthorized VPN Client v2.1"
+  },
+  {
+    "alert_id": "ALERT-017",
+    "severity": "LOW",
+    "source": "Network IDS",
+    "description": "Port scanning activity detected from internal host",
+    "timestamp": "2025-07-30T08:55:00Z",
+    "device_ip": "192.168.1.91",
+    "ports_scanned": 256
+  },
+  {
+    "alert_id": "ALERT-018",
+    "severity": "CRITICAL",
+    "source": "EDR",
+    "description": "Rootkit installation detected - kernel-level malware loaded",
+    "timestamp": "2025-07-30T08:40:00Z",
+    "device_id": "DEV-267",
+    "device_ip": "192.168.1.77",
+    "malware_name": "rootkit.dropper.x64"
+  },
+  {
+    "alert_id": "ALERT-019",
+    "severity": "HIGH",
+    "source": "Antivirus",
+    "description": "Trojan detected and quarantined - banking malware signature",
+    "timestamp": "2025-07-30T08:25:00Z",
+    "device_id": "DEV-156",
+    "malware_signature": "trojan.banker.zeus"
+  },
+  {
+    "alert_id": "ALERT-020",
+    "severity": "MEDIUM",
+    "source": "SIEM",
+    "description": "Unusual after-hours access detected - user login outside business hours",
+    "timestamp": "2025-07-30T02:15:00Z",
+    "username": "pjones@company.com",
+    "source_ip": "203.0.113.150"
+  },
+  {
+    "alert_id": "ALERT-021",
+    "severity": "HIGH",
+    "source": "Firewall",
+    "description": "Suspicious tunnel detected - DNS tunneling attempt",
+    "timestamp": "2025-07-30T07:30:00Z",
+    "device_ip": "192.168.1.55",
+    "destination_ip": "198.51.100.99",
+    "protocol": "DNS"
+  },
+  {
+    "alert_id": "ALERT-022",
+    "severity": "LOW",
+    "source": "EDR",
+    "description": "Suspicious process behavior - monitoring potential threat",
+    "timestamp": "2025-07-30T07:15:00Z",
+    "device_id": "DEV-203",
+    "process_name": "explorer.exe",
+    "suspicious_behavior": "child_process_injection"
+  },
+  {
+    "alert_id": "ALERT-023",
+    "severity": "MEDIUM",
+    "source": "Network IDS",
+    "description": "Potential man-in-the-middle attack detected - SSL certificate anomaly",
+    "timestamp": "2025-07-30T06:45:00Z",
+    "device_ip": "192.168.1.88",
+    "target_domain": "banking.company.com"
+  },
+  {
+    "alert_id": "ALERT-024",
+    "severity": "HIGH",
+    "source": "SIEM",
+    "description": "Bulk data export detected - suspicious access to sensitive database",
+    "timestamp": "2025-07-30T06:20:00Z",
+    "username": "smartin@company.com",
+    "database": "customer_pii",
+    "records_accessed": 50000
+  },
+  {
+    "alert_id": "ALERT-025",
+    "severity": "CRITICAL",
+    "source": "EDR",
+    "description": "Worm activity detected - self-propagation through network shares",
+    "timestamp": "2025-07-30T05:50:00Z",
+    "device_id": "DEV-089",
+    "device_ip": "192.168.1.120",
+    "infected_count": 15
   }
 ]
