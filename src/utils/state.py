@@ -40,7 +40,7 @@ class AlertAnalysisResult(TypedDict, total=False):
 
     alerts: list[dict]
     severity_classification: dict
-    threat_summary: str
+    summary: str
     error: str | None
 
 
@@ -90,7 +90,6 @@ class SOCWorkflowState(TypedDict, total=False):
 
     # Input & context
     user_message: str
-    conversation_history: list[dict]
 
     # Request parsing
     request_info: RequestInfo

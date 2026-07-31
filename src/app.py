@@ -29,6 +29,9 @@ from src.utils import (
 from src.utils.approvals import build_resume, describe_action, describe_interrupt
 from src.utils.trace import RunTrace
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def initialize_session_state():
     """Initialize Streamlit session state."""
@@ -149,7 +152,6 @@ def run_workflow(user_message: str, progress_placeholder=None) -> str:
 
     initial_state: SOCWorkflowState = {
         "user_message": user_message,
-        "conversation_history": _history_for_graph(),
         "request_info": {},
         "requested_actions": [],
         "completed_actions": [],

@@ -96,6 +96,15 @@ the current message names its own entity, that one wins.
 CONVERSATION SO FAR (oldest first):
 {conversation}
 
+ENTITY EXTRACTION RULES:
+- Device IDs: Look for patterns like DEV-### (e.g., DEV-042, DEV-001). Extract as device_id.
+- IP Addresses: IPv4 format (e.g., 192.168.1.42, 203.0.113.45). Extract as ip_address.
+- Usernames: Email format (e.g., jsmith@company.com) or user names. Extract as username.
+- Alert IDs: Format ALERT-### (e.g., ALERT-004). Extract as alert_id.
+- Severity: Words like "critical", "high", "medium", "low", "info". Convert to uppercase. Extract as severity.
+- Time ranges: "last 24 hours", "since Monday", "today". Extract as time_range.
+- Incident IDs: Format INC-### (e.g., INC-123). Extract as incident_id.
+
 IMPORTANT: Return ONLY valid JSON on a single line. Do not add any text before or after the JSON.
 Return this exact structure:
 {{"request_type": ["type1"], "entities": {{"key": "value"}}, "missing_fields": [], "confidence": 0.9}}
@@ -143,10 +152,7 @@ def validate_scope(user_message: str) -> tuple[bool, str | None]:
         return True, None
 
 
-def extract_request_info(
-    user_message: str,
-    conversation_history: list[dict] | None = None
-) -> RequestInfo:
+def extract_request_info(user_message: str, conversation_history: list[dict] | None = None) -> RequestInfo:
     """Parse user message and extract structured RequestInfo.
 
     Args:
@@ -160,6 +166,8 @@ def extract_request_info(
     Raises:
         ValueError: If GOOGLE_API_KEY is not configured in settings
     """
+    if conversation_history is None:
+        conversation_history = []
     if not user_message or not user_message.strip():
         return {
             "request_type": ["unknown"],
@@ -235,10 +243,10 @@ def request_intake_agent_node(state: SOCWorkflowState) -> dict:
         state: Current SOCWorkflowState
 
     Returns:
-        Updated dict with request_info, conversation_history, completed_actions
+        Updated dict with request_info and completed_actions
     """
     user_message = state.get("user_message", "")
-    conversation_history = state.get("conversation_history") or []
+    conversation_history = state.get("conversation_history", [])
     completed_actions = state.get("completed_actions") or []
 
     is_security_related, scope_reason = validate_scope(user_message)
