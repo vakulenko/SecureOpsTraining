@@ -27,6 +27,7 @@ from src.utils import (
     NODE_RESPONSE_GENERATOR,
     NODE_SUPERVISOR,
     SOCWorkflowState,
+    create_checkpointer,
 )
 
 
@@ -42,8 +43,8 @@ def _make_agent_with_completion(agent_func, action_name):
     return wrapper
 
 
-def create_graph():
-    """Create and compile the SOC workflow graph."""
+def _build_graph() -> StateGraph:
+    """Define the nodes and edges. Callers choose how to compile it."""
     graph_builder = StateGraph(SOCWorkflowState)
 
     # Add nodes
@@ -151,8 +152,27 @@ def create_graph():
     graph_builder.set_entry_point(NODE_REQUEST_INTAKE)
     graph_builder.set_finish_point(NODE_RESPONSE_GENERATOR)
 
-    # Compile
-    return graph_builder.compile()
+    return graph_builder
+
+
+def create_graph():
+    """Compile for running ourselves: the Streamlit app, tests and scripts.
+
+    A checkpointer is required, not optional: the approval gate pauses the graph with
+    interrupt(), and without saved state there is nothing to resume, so an approved
+    action could never run.
+    """
+    return _build_graph().compile(checkpointer=create_checkpointer())
+
+
+def create_api_graph():
+    """Compile for `langgraph dev` and LangGraph Platform.
+
+    The platform supplies its own persistence and rejects a graph that brings its own
+    checkpointer, so this deliberately compiles without one. Approvals still work there
+    -- the platform provides the persistence that interrupt()/resume needs.
+    """
+    return _build_graph().compile()
 
 
 # Create a singleton instance
@@ -165,7 +185,3 @@ def get_graph():
     if _graph_instance is None:
         _graph_instance = create_graph()
     return _graph_instance
-
-
-# Export graph for LangGraph CLI
-graph = get_graph()

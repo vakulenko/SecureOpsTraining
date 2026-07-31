@@ -12,7 +12,14 @@ from src.tools.incident_tools import (
     generate_incident_summary,
 )
 from src.utils import IncidentResult, SOCWorkflowState, create_llm, get_settings
-from src.utils.agent_loop import message_text, tool_payload
+from src.utils.agent_loop import (
+    INCIDENT_ID_PATTERN,
+    agent_request,
+    find_entity,
+    message_text,
+    tool_payload,
+)
+from src.utils.approvals import approval_error_hint
 
 INCIDENT_TOOLS = [
     create_incident,
@@ -123,11 +130,16 @@ def incident_agent_node(state: SOCWorkflowState) -> dict:
 
 def run_incident_agent(state: SOCWorkflowState, agent=None) -> dict:
     """Do the actual work. `agent` is injectable so tests can supply a fake model."""
+    # The incident may have been named in an earlier turn ("status of INC-2025-001" then
+    # "escalate it to high"), in which case it arrives through request_info.
+    # No hard guard here: create_incident opens a new incident and has no id yet.
+    incident_id = find_entity(state, "incident_id", pattern=INCIDENT_ID_PATTERN)
+
     try:
         if agent is None:
             agent = build_incident_agent()
         response = agent.invoke(
-            {"messages": [{"role": "user", "content": state.get("user_message", "")}]},
+            {"messages": [{"role": "user", "content": agent_request(state, incident_id)}]},
             config={
                 "run_name": "incident_agent",
                 "tags": ["incident_agent"],
@@ -139,10 +151,12 @@ def run_incident_agent(state: SOCWorkflowState, agent=None) -> dict:
         # failure, so it must reach LangGraph instead of being turned into an error.
         raise
     except Exception as exc:
+        detail = approval_error_hint(exc)
+
         return {
             "incident": _empty_result(
-                summary="The incident request could not be completed.",
-                error=f"Incident agent failed: {exc}",
+                summary=detail,
+                error=f"Incident agent failed: {detail}",
             )
         }
 

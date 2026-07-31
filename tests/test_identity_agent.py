@@ -33,6 +33,18 @@ def test_username_taken_from_parsed_entities(fake_model):
     assert run_identity_agent(state, agent)["identity"]["username"] == RJOHNSON
 
 
+def test_username_is_resolved_from_an_earlier_turn():
+    """A follow-up like "reset password" picks up the username from request_info."""
+    from src.agents.identity import _find_username
+
+    state = {
+        "user_message": "reset password",
+        "request_info": {"entities": {"username": RJOHNSON}},
+    }
+
+    assert _find_username(state) == RJOHNSON
+
+
 def test_account_status_is_extracted(fake_model):
     """A check_account_status tool call populates account_status."""
     agent = build_identity_agent(

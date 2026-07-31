@@ -2,7 +2,11 @@
 
 # Bumped whenever IDENTITY_SYSTEM_PROMPT changes. Sent to LangSmith as a run tag so
 # traces can be compared across prompt versions.
-IDENTITY_PROMPT_VERSION = "v2"
+# v3: traces showed the model answering "the account is locked because..." instead of
+# calling unlock_account on ~half of unlock requests, so no approval was ever raised.
+# v3 names the action verbs in the tool-selection list and tells the model to call the
+# tool rather than describe it.
+IDENTITY_PROMPT_VERSION = "v3"
 
 # v1 is kept so the LangSmith before/after comparison stays reproducible.
 IDENTITY_PROMPT_V1 = """You are the Identity & Access agent in a Security Operations Center.
@@ -19,6 +23,8 @@ WHICH TOOL TO USE
 with outcome="failure". Do NOT fetch the full history and filter it yourself.
 - "login history", "when did they log in", "where did they log in from" -> check_login_history
 - "what has the user been doing", "user activity" -> search_user_activity
+- "unlock", "unlock the account", "remove the lock" -> unlock_account
+- "reset password", "send a password reset" -> request_password_reset
 - Suspected compromise: call check_account_status, check_login_history with \
 outcome="failure", AND search_user_activity before drawing a conclusion.
 
@@ -27,10 +33,15 @@ Usernames are full email addresses, for example jsmith@company.com. If the analy
 only a partial name, do not guess or invent a domain. Say which username you need and stop.
 
 ACTIONS THAT NEED APPROVAL
-unlock_account and request_password_reset pause for the analyst to approve or reject. \
-Propose them with a short justification. Never state that an action succeeded unless a \
-tool result confirms it. If the analyst rejects an action, acknowledge it plainly and do \
-not retry the same call.
+When the analyst asks you to unlock an account or reset a password, CALL THE TOOL. Do \
+not describe the action, ask for confirmation, or stop at reporting the account status - \
+the system pauses for analyst approval on its own before the tool runs, so calling it is \
+always safe. Checking the status first is fine, but it does not replace the call.
+
+Once a tool result comes back, the analyst has already approved it: report what the \
+result says, and never claim an action is still awaiting approval. Never state that an \
+action succeeded unless a tool result confirms it. If the analyst rejects an action, \
+acknowledge it plainly and do not retry the same call.
 
 GROUNDING
 Report only what the tools returned. An empty result means "no records in that time \

@@ -16,6 +16,7 @@ from src.utils import (
     create_llm,
     get_settings,
 )
+from src.utils.agent_loop import format_history
 
 logger = logging.getLogger(__name__)
 
@@ -74,11 +75,17 @@ def build_supervisor_agent(model=None):
     )
 
 
-def _parse_routing_decision(messages: list) -> list[str]:
-    """Extract domain list from the supervisor's response."""
+def _parse_routing_decision(messages: list) -> list[str] | None:
+    """Extract the domain list from the supervisor's response.
+
+    Returns the domains on success, or None if the reply could not be read at all.
+    That distinction matters: an empty list is a valid answer meaning "no domain
+    handles this", whereas None means the router failed and the caller should fall
+    back to keyword matching rather than silently skipping every agent.
+    """
     if not messages:
         logger.warning("No messages in response")
-        return []
+        return None
 
     # Find the last AI message
     last_message = None
@@ -89,7 +96,7 @@ def _parse_routing_decision(messages: list) -> list[str]:
 
     if not last_message:
         logger.warning("No AI message found in response")
-        return []
+        return None
 
     # Extract content, handling both string and content blocks (Gemini)
     content = getattr(last_message, "content", "")
@@ -153,13 +160,12 @@ def _parse_routing_decision(messages: list) -> list[str]:
             ]
             logger.info(f"Successfully parsed domains: {valid_domains}")
             return valid_domains
-        else:
-            logger.warning(f"Response missing 'domains' key: {parsed}")
-            return []
+        logger.warning(f"Response missing 'domains' key: {parsed}")
+        return None
     except (json.JSONDecodeError, ValueError, KeyError, IndexError) as e:
         logger.error(f"Failed to parse routing response: {e}")
         logger.error(f"Attempted to parse: {json_str[:500]}")
-        return []
+        return None
 
 
 def _routing_to_actions(routing_domains: list[str]) -> list[str]:
@@ -211,6 +217,24 @@ def _classify_request_fallback(user_message: str) -> list[str]:
     return actions
 
 
+def _routing_request(state: SOCWorkflowState) -> str:
+    """Build the routing question, including recent turns.
+
+    A follow-up like "and check its status" carries no routable keyword on its own, so
+    without the earlier turns the router cannot tell which domain it belongs to.
+    """
+    user_message = state.get("user_message", "")
+    history = format_history(state.get("conversation_history"))
+
+    if history == "(no earlier messages)":
+        return user_message
+
+    return (
+        f"CONVERSATION SO FAR (oldest first):\n{history}\n\n"
+        f"Route this request: {user_message}"
+    )
+
+
 def supervisor_agent_node(state: SOCWorkflowState) -> dict:
     """Route user request to appropriate agents based on request type."""
     user_message = state.get("user_message", "")
@@ -225,7 +249,7 @@ def supervisor_agent_node(state: SOCWorkflowState) -> dict:
             logger.info("Using LLM to determine routing")
             agent = build_supervisor_agent()
             response = agent.invoke(
-                {"messages": [{"role": "user", "content": user_message}]},
+                {"messages": [{"role": "user", "content": _routing_request(state)}]},
                 config={
                     "run_name": "supervisor_agent",
                     "tags": ["supervisor_agent"],
@@ -234,7 +258,16 @@ def supervisor_agent_node(state: SOCWorkflowState) -> dict:
             )
 
             routing_domains = _parse_routing_decision(response.get("messages", []))
-            requested_actions = _routing_to_actions(routing_domains)
+
+            if routing_domains is None:
+                # The model replied but the reply was unreadable. Falling through to
+                # _routing_to_actions here would route straight to the response
+                # generator and silently skip every agent, so use keywords instead.
+                logger.warning("Could not read the routing reply; using keyword matching")
+                requested_actions = _classify_request_fallback(user_message)
+            else:
+                requested_actions = _routing_to_actions(routing_domains)
+
             logger.info(f"LLM routing determined actions: {requested_actions}")
 
         except Exception as exc:

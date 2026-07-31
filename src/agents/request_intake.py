@@ -4,6 +4,7 @@ import json
 import logging
 
 from src.utils import RequestInfo, SOCWorkflowState
+from src.utils.agent_loop import format_history
 from src.utils.config import get_settings
 from src.utils.llm import create_llm
 
@@ -65,13 +66,24 @@ Valid request_type values:
 
 For multi-action requests where the analyst asks for 2+ things, include multiple request_types.
 
+CARRYING CONTEXT BETWEEN TURNS
+The analyst is continuing an ongoing conversation. If the current request leaves out an
+entity that was already established earlier - a username, device ID, incident ID, alert
+ID - carry that value forward into entities, and do NOT list it in missing_fields.
+For example, after "activity of jsmith@company.com", a follow-up of "reset password"
+still refers to jsmith@company.com.
+Only carry forward a value the analyst actually supplied earlier; never invent one. If
+the current message names its own entity, that one wins.
+
+CONVERSATION SO FAR (oldest first):
+{conversation}
+
 IMPORTANT: Return ONLY valid JSON on a single line. Do not add any text before or after the JSON.
 Return this exact structure:
 {{"request_type": ["type1"], "entities": {{"key": "value"}}, "missing_fields": [], "confidence": 0.9}}
 
-User request: {user_message}
+Current request: {user_message}
 """
-
 
 def extract_request_info(
     user_message: str,
@@ -81,7 +93,8 @@ def extract_request_info(
 
     Args:
         user_message: The analyst's natural language request
-        conversation_history: Prior messages for context (optional)
+        conversation_history: Prior messages, used to resolve follow-up requests that
+            omit an entity named in an earlier turn (optional)
 
     Returns:
         RequestInfo dict with request_type, entities, missing_fields, confidence
@@ -101,7 +114,10 @@ def extract_request_info(
 
     try:
         llm = create_llm(settings)
-        prompt = EXTRACTION_PROMPT.format(user_message=user_message)
+        prompt = EXTRACTION_PROMPT.format(
+            user_message=user_message,
+            conversation=format_history(conversation_history),
+        )
         response = llm.invoke(prompt)
 
         content = extract_json_from_response(response.content)
