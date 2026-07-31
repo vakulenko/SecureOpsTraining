@@ -70,6 +70,18 @@ def update_record(filename: str, key: str, value: str, changes: dict) -> dict | 
     return None
 
 
+def insert_record(filename: str, record: dict) -> dict | None:
+    """Append a new record. Returns the record, or None if the write failed.
+
+    For creating something that didn't exist before (e.g. a new incident), as
+    opposed to update_record which only changes an existing one.
+    """
+    records = load_records(filename)
+    records.append(record)
+
+    return record if save_records(filename, records) else None
+
+
 def reset_runtime_data() -> None:
     """Discard every write, returning the mock data to its seeded state."""
     target_dir = runtime_dir()
