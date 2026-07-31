@@ -1,38 +1,19 @@
-"""Test the endpoint and incident agent nodes with a fake model, no API key needed."""
+"""Test the endpoint and incident agent nodes with a fake model, no API key needed.
+
+Uses the shared `fake_model` fixture and `tool_call` helper from tests/conftest.py.
+"""
 
 import pytest
-from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
 from langchain_core.messages import AIMessage, ToolMessage
 
 from src.agents.endpoint import build_endpoint_agent, run_endpoint_agent
+from tests.conftest import tool_call
 from src.agents.incident import build_incident_agent, run_incident_agent
-
-
-class FakeToolCallingModel(GenericFakeChatModel):
-    """GenericFakeChatModel that can be used with create_agent.
-
-    GenericFakeChatModel returns scripted replies but inherits BaseChatModel.bind_tools,
-    which raises NotImplementedError. create_agent always binds tools, so without this
-    passthrough every agent test fails before it starts.
-    """
-
-    def bind_tools(self, tools, **kwargs):
-        return self
-
-
-def fake_model(*messages: AIMessage) -> FakeToolCallingModel:
-    return FakeToolCallingModel(messages=iter(messages))
-
-
-def tool_call(name: str, args: dict, call_id: str = "call_1") -> dict:
-    """Build a tool call for a scripted AIMessage."""
-    return {"name": name, "args": args, "id": call_id, "type": "tool_call"}
-
 
 # --- endpoint agent ---------------------------------------------------------
 
 
-def test_endpoint_status_is_extracted():
+def test_endpoint_status_is_extracted(fake_model):
     agent = build_endpoint_agent(
         fake_model(
             AIMessage(
@@ -72,7 +53,7 @@ def test_endpoint_approval_interrupt_is_not_swallowed_as_an_error():
         run_endpoint_agent({"user_message": "scan DEV-002"}, InterruptingAgent())
 
 
-def test_endpoint_node_returns_only_the_endpoint_key():
+def test_endpoint_node_returns_only_the_endpoint_key(fake_model):
     agent = build_endpoint_agent(fake_model(AIMessage(content="Done.")))
     update = run_endpoint_agent({"user_message": "check DEV-001"}, agent)
 
@@ -107,7 +88,7 @@ def test_endpoint_scan_device_is_recorded_in_actions_taken():
 # --- incident agent ----------------------------------------------------------
 
 
-def test_incident_status_is_extracted():
+def test_incident_status_is_extracted(fake_model):
     agent = build_incident_agent(
         fake_model(
             AIMessage(
@@ -151,7 +132,7 @@ def test_incident_approval_interrupt_is_not_swallowed_as_an_error():
         run_incident_agent({"user_message": "escalate INC-2025-001"}, InterruptingAgent())
 
 
-def test_incident_node_returns_only_the_incident_key():
+def test_incident_node_returns_only_the_incident_key(fake_model):
     agent = build_incident_agent(fake_model(AIMessage(content="Done.")))
     update = run_incident_agent({"user_message": "status of INC-2025-001"}, agent)
 
