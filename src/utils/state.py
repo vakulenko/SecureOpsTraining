@@ -25,12 +25,14 @@ class RequestInfo(TypedDict, total=False):
         * escalation_level: str - "high", "critical"
     - missing_fields: Which required fields are absent from the user message
     - confidence: 0.0-1.0, how confident the extraction is (default 1.0)
+    - scope_error: Error message if request is outside information security scope (optional)
     """
 
     request_type: list[str]
     entities: dict[str, Any]
     missing_fields: list[str]
     confidence: float
+    scope_error: str | None
 
 
 class AlertAnalysisResult(TypedDict, total=False):

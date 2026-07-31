@@ -60,6 +60,7 @@ def _build_graph() -> StateGraph:
     def response_generator_node(state: SOCWorkflowState) -> dict:
         """Synthesize all agent outputs into a final response for the analyst."""
         user_message = state.get("user_message", "")
+        request_info = state.get("request_info", {})
         alert_result = state.get("alert_analysis")
         identity_result = state.get("identity")
         endpoint_result = state.get("endpoint")
@@ -67,6 +68,13 @@ def _build_graph() -> StateGraph:
         reporting_result = state.get("reporting")
 
         response_parts = [f"Request: {user_message}\n"]
+
+        # Check for scope error first
+        if request_info.get("scope_error"):
+            scope_error = request_info["scope_error"]
+            return {
+                "final_response": f"I can only assist with information security operations. {scope_error}",
+            }
 
         if alert_result and not alert_result.get("error"):
             response_parts.append(f"**Alert Analysis**\n{alert_result.get('summary', '')}\n")
