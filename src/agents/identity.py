@@ -1,7 +1,6 @@
 """Identity and access agent for user account operations."""
 
 import json
-import re
 
 from langchain.agents import create_agent
 from langchain.agents.middleware import HumanInTheLoopMiddleware
@@ -17,6 +16,8 @@ from src.tools.identity_tools import (
     unlock_account,
 )
 from src.utils import IdentityResult, SOCWorkflowState, create_llm, get_settings
+from src.utils.agent_loop import EMAIL_PATTERN, agent_request, find_entity
+from src.utils.approvals import approval_error_hint
 
 IDENTITY_TOOLS = [
     check_login_history,
@@ -33,7 +34,6 @@ APPROVAL_TOOLS = {
     "request_password_reset": {"allowed_decisions": ["approve", "reject"]},
 }
 
-_USERNAME_PATTERN = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
 
 
 def build_identity_agent(model=None):
@@ -72,13 +72,7 @@ def _empty_result(username: str, summary: str, error: str | None = None) -> Iden
 
 def _find_username(state: SOCWorkflowState) -> str:
     """Get the username from the parsed entities, falling back to the raw message."""
-    entities = state.get("request_info", {}).get("entities") or {}
-    username = entities.get("username")
-    if username:
-        return str(username)
-
-    match = _USERNAME_PATTERN.search(state.get("user_message", ""))
-    return match.group(0) if match else ""
+    return find_entity(state, "username", "user", "email", pattern=EMAIL_PATTERN)
 
 
 def _tool_payload(message: ToolMessage):
@@ -158,7 +152,7 @@ def run_identity_agent(state: SOCWorkflowState, agent=None) -> dict:
         if agent is None:
             agent = build_identity_agent()
         response = agent.invoke(
-            {"messages": [{"role": "user", "content": state.get("user_message", "")}]},
+            {"messages": [{"role": "user", "content": agent_request(state, username)}]},
             config={
                 "run_name": "identity_agent",
                 "tags": ["identity_agent", f"prompt:{IDENTITY_PROMPT_VERSION}"],
@@ -173,11 +167,13 @@ def run_identity_agent(state: SOCWorkflowState, agent=None) -> dict:
         # failure, so it must reach LangGraph instead of being turned into an error.
         raise
     except Exception as exc:
+        detail = approval_error_hint(exc)
+
         return {
             "identity": _empty_result(
                 username=username,
-                summary="The identity lookup could not be completed.",
-                error=f"Identity agent failed: {exc}",
+                summary=detail,
+                error=f"Identity agent failed: {detail}",
             )
         }
 

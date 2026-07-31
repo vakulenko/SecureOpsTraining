@@ -12,7 +12,14 @@ from src.tools.endpoint_tools import (
     search_device,
 )
 from src.utils import EndpointResult, SOCWorkflowState, create_llm, get_settings
-from src.utils.agent_loop import message_text, tool_payload
+from src.utils.agent_loop import (
+    DEVICE_ID_PATTERN,
+    agent_request,
+    find_entity,
+    message_text,
+    tool_payload,
+)
+from src.utils.approvals import approval_error_hint
 
 ENDPOINT_TOOLS = [check_endpoint_status, search_device, scan_device, get_malware_details]
 
@@ -117,11 +124,18 @@ def endpoint_agent_node(state: SOCWorkflowState) -> dict:
 
 def run_endpoint_agent(state: SOCWorkflowState, agent=None) -> dict:
     """Do the actual work. `agent` is injectable so tests can supply a fake model."""
+    # The device may have been named in an earlier turn ("check DEV-001" then "scan it"),
+    # in which case it reaches us through request_info rather than this message.
+    # No hard guard here: search_device can still resolve a hostname or IP on its own.
+    device = find_entity(
+        state, "device_id", "hostname", "ip_address", pattern=DEVICE_ID_PATTERN
+    )
+
     try:
         if agent is None:
             agent = build_endpoint_agent()
         response = agent.invoke(
-            {"messages": [{"role": "user", "content": state.get("user_message", "")}]},
+            {"messages": [{"role": "user", "content": agent_request(state, device)}]},
             config={
                 "run_name": "endpoint_agent",
                 "tags": ["endpoint_agent"],
@@ -133,10 +147,12 @@ def run_endpoint_agent(state: SOCWorkflowState, agent=None) -> dict:
         # failure, so it must reach LangGraph instead of being turned into an error.
         raise
     except Exception as exc:
+        detail = approval_error_hint(exc)
+
         return {
             "endpoint": _empty_result(
-                summary="The endpoint lookup could not be completed.",
-                error=f"Endpoint agent failed: {exc}",
+                summary=detail,
+                error=f"Endpoint agent failed: {detail}",
             )
         }
 
