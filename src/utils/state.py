@@ -4,11 +4,33 @@ from typing import Any, TypedDict
 
 
 class RequestInfo(TypedDict, total=False):
-    """Extracted request information from user message."""
+    """Extracted request information from user message.
 
-    request_type: str
+    Fields:
+    - request_type: List of workflow intents. Allows multi-action requests.
+        Valid values: {alert_search, identity_check, endpoint_check,
+                       incident_create, incident_escalate, reporting,
+                       ip_investigation, unknown}
+        Examples: ["alert_search"] or ["alert_search", "identity_check"]
+    - entities: Extracted parameters such as:
+        * username: str - user account name
+        * ip_address: str - IP to investigate
+        * device_id: str - endpoint device identifier
+        * alert_id: str - security alert identifier
+        * incident_id: str - incident identifier
+        * severity: str - "high", "critical", etc.
+        * time_range: str - "last 24 hours", "last 7 days"
+        * query: str - search query for alerts
+        * report_type: str - "incident", "threat_summary", etc.
+        * escalation_level: str - "high", "critical"
+    - missing_fields: Which required fields are absent from the user message
+    - confidence: 0.0-1.0, how confident the extraction is (default 1.0)
+    """
+
+    request_type: list[str]
     entities: dict[str, Any]
     missing_fields: list[str]
+    confidence: float
 
 
 class AlertAnalysisResult(TypedDict, total=False):

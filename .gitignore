@@ -70,3 +70,5 @@ data/runtime/
 docs/plans
 REQUIREMENTS.md
 .langgraph_api/
+.claude/
+.playwright-mcp/
