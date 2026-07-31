@@ -42,10 +42,7 @@ def setup_langsmith_tracing() -> Optional[Client]:
         os.environ["LANGSMITH_TRACING"] = "true"
 
         # Create and test client connection
-        client = Client(
-            api_key=settings.langsmith_api_key,
-            endpoint=settings.langsmith_endpoint,
-        )
+        client = Client(api_key=settings.langsmith_api_key)
 
         # Verify connection by listing projects
         projects = client.list_projects()
