@@ -1,5 +1,6 @@
 """Reporting tools for generating incident reports and summaries."""
 
+from datetime import datetime
 from src.tools.common import find_mock_record, load_mock_data
 
 
@@ -77,4 +78,184 @@ def export_incident_data(incident_id: str, format: str = "json") -> dict:
         "format": format,
         "data": incident,
         "exported": True,
+    }
+
+
+def generate_daily_security_report() -> dict:
+    """Generate a comprehensive daily security report covering alerts, devices, incidents, logins, and user activity."""
+    alerts = load_mock_data("mock_alerts.json")
+    devices = load_mock_data("mock_devices.json")
+    incidents = load_mock_data("mock_incidents.json")
+    logins = load_mock_data("mock_logins.json")
+    user_activity = load_mock_data("mock_user_activity.json")
+
+    alert_severity_count = {
+        "HIGH": len([a for a in alerts if a.get("severity") == "HIGH"]),
+        "MEDIUM": len([a for a in alerts if a.get("severity") == "MEDIUM"]),
+        "LOW": len([a for a in alerts if a.get("severity") == "LOW"]),
+    }
+
+    device_status_count = {
+        "healthy": len([d for d in devices if d.get("status") == "healthy"]),
+        "compromised": len([d for d in devices if d.get("status") == "compromised"]),
+        "at_risk": len([d for d in devices if d.get("status") == "at_risk"]),
+    }
+
+    incident_status_count = {
+        "open": len([i for i in incidents if i.get("status") == "open"]),
+        "investigating": len([i for i in incidents if i.get("status") == "investigating"]),
+        "resolved": len([i for i in incidents if i.get("status") == "resolved"]),
+    }
+
+    failed_logins = len([l for l in logins if l.get("outcome") == "failure"])
+    successful_logins = len([l for l in logins if l.get("outcome") == "success"])
+
+    suspicious_activity = len([a for a in user_activity if a.get("activity_type") == "suspicious"])
+
+    report = f"""
+DAILY SECURITY REPORT
+Generated: {datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")}
+
+ALERTS SUMMARY
+─────────────────────────────────────
+Total Alerts: {len(alerts)}
+  • HIGH Severity: {alert_severity_count['HIGH']}
+  • MEDIUM Severity: {alert_severity_count['MEDIUM']}
+  • LOW Severity: {alert_severity_count['LOW']}
+
+DEVICE STATUS
+─────────────────────────────────────
+Total Devices: {len(devices)}
+  • Healthy: {device_status_count['healthy']}
+  • At Risk: {device_status_count['at_risk']}
+  • Compromised: {device_status_count['compromised']}
+
+INCIDENTS
+─────────────────────────────────────
+Total Incidents: {len(incidents)}
+  • Open: {incident_status_count['open']}
+  • Investigating: {incident_status_count['investigating']}
+  • Resolved: {incident_status_count['resolved']}
+
+LOGIN ACTIVITY
+─────────────────────────────────────
+Total Login Attempts: {len(logins)}
+  • Successful: {successful_logins}
+  • Failed: {failed_logins}
+  • Success Rate: {successful_logins / len(logins) * 100:.1f}%
+
+USER ACTIVITY
+─────────────────────────────────────
+Total Activity Events: {len(user_activity)}
+  • Suspicious Events: {suspicious_activity}
+  • Normal Events: {len(user_activity) - suspicious_activity}
+
+KEY FINDINGS
+─────────────────────────────────────
+• Review all HIGH severity alerts for immediate action
+• Address {device_status_count['compromised']} compromised devices
+• Investigate {failed_logins} failed login attempts
+• Monitor {suspicious_activity} suspicious user activities
+"""
+
+    return {
+        "report_type": "daily_security",
+        "report_content": report,
+        "format": "text",
+        "generated_at": datetime.utcnow().isoformat(),
+        "summary": {
+            "total_alerts": len(alerts),
+            "high_severity_alerts": alert_severity_count["HIGH"],
+            "compromised_devices": device_status_count["compromised"],
+            "open_incidents": incident_status_count["open"],
+            "failed_logins": failed_logins,
+            "suspicious_activities": suspicious_activity,
+        }
+    }
+
+
+def generate_executive_summary_report() -> dict:
+    """Generate an executive-level security summary covering all key metrics."""
+    alerts = load_mock_data("mock_alerts.json")
+    devices = load_mock_data("mock_devices.json")
+    incidents = load_mock_data("mock_incidents.json")
+    logins = load_mock_data("mock_logins.json")
+    user_activity = load_mock_data("mock_user_activity.json")
+
+    alert_severity_count = {
+        "HIGH": len([a for a in alerts if a.get("severity") == "HIGH"]),
+        "MEDIUM": len([a for a in alerts if a.get("severity") == "MEDIUM"]),
+        "LOW": len([a for a in alerts if a.get("severity") == "LOW"]),
+    }
+
+    device_status_count = {
+        "healthy": len([d for d in devices if d.get("status") == "healthy"]),
+        "compromised": len([d for d in devices if d.get("status") == "compromised"]),
+        "at_risk": len([d for d in devices if d.get("status") == "at_risk"]),
+    }
+
+    incident_severity_count = {
+        "CRITICAL": len([i for i in incidents if i.get("severity") == "CRITICAL"]),
+        "HIGH": len([i for i in incidents if i.get("severity") == "HIGH"]),
+        "MEDIUM": len([i for i in incidents if i.get("severity") == "MEDIUM"]),
+    }
+
+    failed_logins = len([l for l in logins if l.get("outcome") == "failure"])
+    suspicious_activity = len([a for a in user_activity if a.get("activity_type") == "suspicious"])
+
+    summary = f"""
+EXECUTIVE SECURITY SUMMARY
+Generated: {datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")}
+
+SECURITY POSTURE OVERVIEW
+─────────────────────────────────────
+The organization's security status is under active monitoring with {len(incidents)} active incidents
+requiring leadership attention.
+
+CRITICAL METRICS
+─────────────────────────────────────
+Active Incidents: {len(incidents)}
+  └─ CRITICAL: {incident_severity_count['CRITICAL']} | HIGH: {incident_severity_count['HIGH']} | MEDIUM: {incident_severity_count['MEDIUM']}
+
+Security Alerts: {len(alerts)} (HIGH: {alert_severity_count['HIGH']})
+  └─ Immediate attention required for {alert_severity_count['HIGH']} high-severity alerts
+
+Device Security: {device_status_count['healthy']} healthy, {device_status_count['at_risk']} at-risk, {device_status_count['compromised']} compromised
+  └─ {device_status_count['compromised']} devices require remediation
+
+ACCESS CONTROL
+─────────────────────────────────────
+Failed Login Attempts: {failed_logins}
+Suspicious User Activities: {suspicious_activity}
+
+RISK ASSESSMENT
+─────────────────────────────────────
+Overall Risk Level: {"CRITICAL" if alert_severity_count['HIGH'] > 2 or device_status_count['compromised'] > 0 else "HIGH" if alert_severity_count['HIGH'] > 0 or incident_severity_count['CRITICAL'] > 0 else "MEDIUM"}
+
+Priority Actions:
+1. Address {alert_severity_count['HIGH']} high-severity security alerts
+2. Investigate {incident_severity_count['CRITICAL']} critical incidents
+3. Remediate {device_status_count['compromised']} compromised endpoint(s)
+4. Review {failed_logins} failed login attempts for intrusion patterns
+
+COMPLIANCE & REPORTING
+─────────────────────────────────────
+All security incidents are being tracked and logged for compliance purposes.
+Detailed forensic reports are available on request.
+"""
+
+    return {
+        "report_type": "executive_summary",
+        "report_content": summary,
+        "format": "text",
+        "generated_at": datetime.utcnow().isoformat(),
+        "summary_metrics": {
+            "total_incidents": len(incidents),
+            "critical_incidents": incident_severity_count["CRITICAL"],
+            "total_alerts": len(alerts),
+            "high_severity_alerts": alert_severity_count["HIGH"],
+            "compromised_devices": device_status_count["compromised"],
+            "failed_logins": failed_logins,
+            "suspicious_activities": suspicious_activity,
+        }
     }

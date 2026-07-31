@@ -9,6 +9,8 @@ from src.tools.reporting_tools import (
     export_incident_data,
     generate_executive_summary,
     generate_security_report,
+    generate_daily_security_report,
+    generate_executive_summary_report,
 )
 from src.utils import ReportingResult, SOCWorkflowState, create_llm, get_settings
 from src.utils.agent_loop import message_text, tool_payload
@@ -16,6 +18,8 @@ from src.utils.agent_loop import message_text, tool_payload
 REPORTING_TOOLS = [
     generate_security_report,
     generate_executive_summary,
+    generate_daily_security_report,
+    generate_executive_summary_report,
     create_investigation_report,
     export_incident_data,
 ]
@@ -25,7 +29,8 @@ You are speaking to a security analyst who needs formal reports and summaries.
 
 WHICH TOOL TO USE
 - "generate report for INC-...", "security report" -> generate_security_report
-- "executive summary", "summary of incidents", "high-level overview" -> generate_executive_summary
+- "daily report", "daily security report" -> generate_daily_security_report
+- "executive summary", "summary of incidents", "high-level overview" -> generate_executive_summary_report
 - "investigation report", "findings report", "document findings" -> create_investigation_report
 - "export INC-...", "export data", "export as JSON" -> export_incident_data
 
@@ -81,6 +86,12 @@ def _result_from_messages(messages: list) -> ReportingResult:
             result["export_format"] = payload.get("format", "text")
         elif message.name == "generate_executive_summary" and isinstance(payload, dict):
             result["report_content"] = payload.get("summary_content", result["report_content"])
+        elif message.name == "generate_daily_security_report" and isinstance(payload, dict):
+            result["report_content"] = payload.get("report_content", result["report_content"])
+            result["export_format"] = payload.get("format", "text")
+        elif message.name == "generate_executive_summary_report" and isinstance(payload, dict):
+            result["report_content"] = payload.get("report_content", result["report_content"])
+            result["export_format"] = payload.get("format", "text")
         elif message.name == "create_investigation_report" and isinstance(payload, dict):
             result["report_content"] = (
                 f"Investigation Report Created\nFindings: {payload.get('findings', [])}"
